@@ -1,5 +1,6 @@
 # ============================================================
 # GEOVISTA Intelligence Platform - Production Requirements
+# Ultra-lightweight Serverless Bundle (<80 MB, no CUDA bloat)
 # ============================================================
 
 # Web & API Framework
@@ -9,29 +10,15 @@ pydantic>=2.7.0
 pydantic-settings>=2.3.0
 python-dotenv>=1.0.0
 
-# Numerical & Data Processing
+# Numerical & Geospatial
 numpy>=1.26.0
-pandas>=2.2.0
-scipy>=1.13.0
-
-# Geospatial
 shapely>=2.0.4
 pyproj>=3.6.1
 
 # HTTP & Async
 requests>=2.32.0
-aiohttp>=3.9.0
-aiofiles>=23.2.1
 httpx>=0.27.0
 
-# ML & Inference (CPU-compatible on cloud serverless runtimes)
-torch>=2.3.0
-torchvision>=0.18.0
-scikit-learn>=1.5.0
-xgboost>=2.0.3
-
-# Utilities & Config
-pyyaml>=6.0.1
+# Config & Utilities
 psutil>=5.9.0
-tqdm>=4.66.0
-rich>=13.7.0
+pyyaml>=6.0.1

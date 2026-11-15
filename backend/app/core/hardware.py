@@ -26,7 +26,13 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import psutil
-import torch
+
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    TORCH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +99,7 @@ def detect_hardware() -> HardwareProfile:
 
     Does **not** raise – falls back gracefully to CPU-only on any error.
     """
-    torch_version = torch.__version__
+    torch_version = torch.__version__ if TORCH_AVAILABLE and torch is not None else "serverless_cpu_mode"
 
     # --- RAM & CPU ----------------------------------------------------------
     mem = psutil.virtual_memory()
@@ -101,7 +107,7 @@ def detect_hardware() -> HardwareProfile:
     cpu_cores = psutil.cpu_count(logical=True) or 1
 
     # --- GPU ----------------------------------------------------------------
-    if torch.cuda.is_available():
+    if TORCH_AVAILABLE and torch is not None and torch.cuda.is_available():
         device = "cuda"
         idx = torch.cuda.current_device()
         gpu_name: Optional[str] = torch.cuda.get_device_name(idx)
@@ -149,15 +155,17 @@ def detect_hardware() -> HardwareProfile:
     )
 
 
-def get_device() -> torch.device:
+def get_device() -> Any:
     """
-    Return the best available :class:`torch.device`.
+    Return the best available device.
 
     Returns ``cuda`` when a CUDA-capable GPU is detected, otherwise ``cpu``.
     """
-    if torch.cuda.is_available():
+    if TORCH_AVAILABLE and torch is not None and torch.cuda.is_available():
         return torch.device("cuda")
-    return torch.device("cpu")
+    if TORCH_AVAILABLE and torch is not None:
+        return torch.device("cpu")
+    return "cpu"
 
 
 def auto_batch_size(model_complexity: str = "medium") -> int:
