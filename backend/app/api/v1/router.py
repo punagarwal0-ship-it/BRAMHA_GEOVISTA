@@ -78,6 +78,7 @@ class EnsemblePredictRequest(BaseModel):
 # System & Health
 # -----------------------------------------------------------------------------
 @router.get("/health")
+@router.get("/api/health")
 def get_health() -> dict[str, Any]:
     """Return system status, hardware profile, and available model counts."""
     hw = detect_hardware()

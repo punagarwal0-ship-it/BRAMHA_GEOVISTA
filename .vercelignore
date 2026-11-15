@@ -1,0 +1,40 @@
+# Local Dependencies & Build Caches
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+build/
+.vite/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment & Credentials
+.env
+.env.*
+!.env.example
+
+# Legacy folder with spaces
+FRONT END/
+
+# Non-essential docs & project assets
+docs/
+*.docx
+SAR_Accel_Flowchart.png
+
+# Large test checkpoints & raw satellite datasets
+backend/tests/
+backend/data/downloads/
+backend/data/cache/
+backend/artifacts/test_*.pt
+backend/artifacts/landcover_unet_best.pt
+artifacts/test_*.pt
+
+# OS & Git
+.git/
+.github/
+.DS_Store
+Thumbs.db
