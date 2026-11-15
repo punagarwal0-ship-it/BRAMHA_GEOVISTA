@@ -1,0 +1,272 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0xDE6F50DEF862EA05",
+      "device": "xc7a35tcpg236-1",
+      "gen_directory": "../../../../SAR-accel.gen/sources_1/bd/sar_accel_bd",
+      "name": "sar_accel_bd",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2026.1",
+      "validated": "true"
+    },
+    "design_tree": {
+      "sar_accel_top_0": ""
+    },
+    "ports": {
+      "clk_0": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "ASSOCIATED_RESET": {
+            "value": "rst_0",
+            "value_src": "default"
+          },
+          "CLK_DOMAIN": {
+            "value": "sar_accel_bd_clk_0",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000",
+            "value_src": "default"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "rst_0": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_LOW",
+            "value_src": "default"
+          }
+        }
+      },
+      "start_0": {
+        "direction": "I"
+      },
+      "valid_in_0": {
+        "direction": "I"
+      },
+      "pixel1_in_0": {
+        "direction": "I",
+        "left": "7",
+        "right": "0"
+      },
+      "pixel2_in_0": {
+        "direction": "I",
+        "left": "7",
+        "right": "0"
+      },
+      "threshold_0": {
+        "direction": "I",
+        "left": "7",
+        "right": "0"
+      },
+      "ready_out_0": {
+        "direction": "I"
+      },
+      "ready_in_0": {
+        "direction": "O"
+      },
+      "busy_0": {
+        "direction": "O"
+      },
+      "done_0": {
+        "direction": "O"
+      },
+      "valid_out_0": {
+        "direction": "O"
+      },
+      "enhanced_pixel_0": {
+        "direction": "O",
+        "left": "7",
+        "right": "0"
+      },
+      "change_pixel_0": {
+        "direction": "O"
+      }
+    },
+    "components": {
+      "sar_accel_top_0": {
+        "vlnv": "xilinx.com:module_ref:sar_accel_top:1.0",
+        "ip_revision": "1",
+        "xci_name": "sar_accel_bd_sar_accel_top_0_0",
+        "xci_path": "ip\\sar_accel_bd_sar_accel_top_0_0\\sar_accel_bd_sar_accel_top_0_0.xci",
+        "inst_hier_path": "sar_accel_top_0",
+        "has_run_ip_tcl": "true",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "sar_accel_top",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              },
+              "CLK_DOMAIN": {
+                "value": "sar_accel_bd_clk_0",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I"
+          },
+          "start": {
+            "direction": "I"
+          },
+          "valid_in": {
+            "direction": "I"
+          },
+          "ready_in": {
+            "direction": "O"
+          },
+          "pixel1_in": {
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "pixel2_in": {
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "threshold": {
+            "direction": "I",
+            "left": "7",
+            "right": "0"
+          },
+          "busy": {
+            "direction": "O"
+          },
+          "done": {
+            "direction": "O"
+          },
+          "valid_out": {
+            "direction": "O"
+          },
+          "ready_out": {
+            "direction": "I"
+          },
+          "enhanced_pixel": {
+            "direction": "O",
+            "left": "7",
+            "right": "0"
+          },
+          "change_pixel": {
+            "direction": "O"
+          }
+        }
+      }
+    },
+    "nets": {
+      "clk_0_1": {
+        "ports": [
+          "clk_0",
+          "sar_accel_top_0/clk"
+        ]
+      },
+      "pixel1_in_0_1": {
+        "ports": [
+          "pixel1_in_0",
+          "sar_accel_top_0/pixel1_in"
+        ]
+      },
+      "pixel2_in_0_1": {
+        "ports": [
+          "pixel2_in_0",
+          "sar_accel_top_0/pixel2_in"
+        ]
+      },
+      "ready_out_0_1": {
+        "ports": [
+          "ready_out_0",
+          "sar_accel_top_0/ready_out"
+        ]
+      },
+      "rst_0_1": {
+        "ports": [
+          "rst_0",
+          "sar_accel_top_0/rst"
+        ]
+      },
+      "sar_accel_top_0_busy": {
+        "ports": [
+          "sar_accel_top_0/busy",
+          "busy_0"
+        ]
+      },
+      "sar_accel_top_0_change_pixel": {
+        "ports": [
+          "sar_accel_top_0/change_pixel",
+          "change_pixel_0"
+        ]
+      },
+      "sar_accel_top_0_done": {
+        "ports": [
+          "sar_accel_top_0/done",
+          "done_0"
+        ]
+      },
+      "sar_accel_top_0_enhanced_pixel": {
+        "ports": [
+          "sar_accel_top_0/enhanced_pixel",
+          "enhanced_pixel_0"
+        ]
+      },
+      "sar_accel_top_0_ready_in": {
+        "ports": [
+          "sar_accel_top_0/ready_in",
+          "ready_in_0"
+        ]
+      },
+      "sar_accel_top_0_valid_out": {
+        "ports": [
+          "sar_accel_top_0/valid_out",
+          "valid_out_0"
+        ]
+      },
+      "start_0_1": {
+        "ports": [
+          "start_0",
+          "sar_accel_top_0/start"
+        ]
+      },
+      "threshold_0_1": {
+        "ports": [
+          "threshold_0",
+          "sar_accel_top_0/threshold"
+        ]
+      },
+      "valid_in_0_1": {
+        "ports": [
+          "valid_in_0",
+          "sar_accel_top_0/valid_in"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"0.862978",
+   "Default View_TopLeft":"-181,-264",
+   "ExpandedHierarchyInLayout":"",
+   "Interfaces View_ScaleFactor":"0.8",
+   "Interfaces View_TopLeft":"-249,-214",
+   "guistr":"# # String gsaved with Nlview 7.8.0 2024-04-26 e1825d835c VDI=44 GEI=38 GUI=JA:24.0
+#  -string -flagsOSRD
+preplace port port-id_clk_0 -pg 1 -lvl 0 -x -50 -y -10 -defaultsOSRD
+preplace port port-id_rst_0 -pg 1 -lvl 0 -x -50 -y 20 -defaultsOSRD
+preplace port port-id_start_0 -pg 1 -lvl 0 -x -50 -y 50 -defaultsOSRD
+preplace port port-id_valid_in_0 -pg 1 -lvl 0 -x -50 -y 80 -defaultsOSRD
+preplace port port-id_ready_out_0 -pg 1 -lvl 0 -x -50 -y 200 -defaultsOSRD
+preplace port port-id_ready_in_0 -pg 1 -lvl 2 -x 390 -y 30 -defaultsOSRD
+preplace port port-id_busy_0 -pg 1 -lvl 2 -x 390 -y 60 -defaultsOSRD
+preplace port port-id_done_0 -pg 1 -lvl 2 -x 390 -y 90 -defaultsOSRD
+preplace port port-id_valid_out_0 -pg 1 -lvl 2 -x 390 -y 120 -defaultsOSRD
+preplace port port-id_change_pixel_0 -pg 1 -lvl 2 -x 390 -y 180 -defaultsOSRD
+preplace portBus pixel1_in_0 -pg 1 -lvl 0 -x -50 -y 110 -defaultsOSRD
+preplace portBus pixel2_in_0 -pg 1 -lvl 0 -x -50 -y 140 -defaultsOSRD
+preplace portBus threshold_0 -pg 1 -lvl 0 -x -50 -y 170 -defaultsOSRD
+preplace portBus enhanced_pixel_0 -pg 1 -lvl 2 -x 390 -y 150 -defaultsOSRD
+preplace inst sar_accel_top_0 -pg 1 -lvl 1 -x 180 -y 130 -defaultsOSRD
+preplace netloc clk_0_1 1 0 1 20 -10n
+preplace netloc rst_0_1 1 0 1 10 20n
+preplace netloc start_0_1 1 0 1 0 50n
+preplace netloc valid_in_0_1 1 0 1 -10 80n
+preplace netloc pixel1_in_0_1 1 0 1 -20 110n
+preplace netloc pixel2_in_0_1 1 0 1 -30 140n
+preplace netloc threshold_0_1 1 0 1 20 170n
+preplace netloc ready_out_0_1 1 0 1 N 200
+preplace netloc sar_accel_top_0_ready_in 1 1 1 340 30n
+preplace netloc sar_accel_top_0_busy 1 1 1 350 60n
+preplace netloc sar_accel_top_0_done 1 1 1 360 90n
+preplace netloc sar_accel_top_0_valid_out 1 1 1 370 120n
+preplace netloc sar_accel_top_0_enhanced_pixel 1 1 1 340 150n
+preplace netloc sar_accel_top_0_change_pixel 1 1 1 N 180
+levelinfo -pg 1 -50 180 390
+pagesize -pg 1 -db -bbox -sgen -200 -30 580 260
+"
+}
+
