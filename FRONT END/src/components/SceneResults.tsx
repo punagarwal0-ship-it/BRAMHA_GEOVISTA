@@ -1,14 +1,10 @@
 import React from 'react';
 import {
-  Calendar,
   Cloud,
   CheckCircle,
   AlertTriangle,
-  ExternalLink,
-  Layers,
-  Sparkles,
   Search,
-  Maximize2
+  Layers
 } from 'lucide-react';
 import { ObservationScene } from '../types/api';
 
@@ -28,50 +24,50 @@ export const SceneResults: React.FC<SceneResultsProps> = ({
   onRefreshCatalog
 }) => {
   return (
-    <div className="space-y-3 text-xs select-none">
-      {/* Header with Search/Refresh */}
+    <div className="space-y-4 text-xs select-none">
+      {/* Header with Search/Refresh (34px Control) */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="font-semibold text-slate-200 block text-xs">
-            Satellite Catalog ({scenes.length} Scenes)
+          <span className="font-medium text-ink block text-xs">
+            Satellite catalog ({scenes.length} scenes)
           </span>
-          <span className="text-[10px] text-slate-400">
-            Intersecting optical & SAR granules
+          <span className="text-xs text-muted-2">
+            Intersecting optical and radar granules
           </span>
         </div>
         <button
           onClick={onRefreshCatalog}
           disabled={isLoading}
-          className="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-800 text-white font-semibold rounded text-[11px] flex items-center space-x-1.5 transition-colors"
+          className="h-[34px] px-3 rounded-control bg-paper-surface hover:bg-paper-surface-hover disabled:opacity-50 text-ink border border-rule font-medium text-xs flex items-center space-x-2 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
         >
-          <Search className="h-3 w-3" />
-          <span>{isLoading ? 'Querying STAC...' : 'Query Catalog'}</span>
+          <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{isLoading ? 'Querying catalog…' : 'Query catalog'}</span>
         </button>
       </div>
 
       {/* Loading state */}
       {isLoading && (
-        <div className="p-6 text-center text-slate-400 space-y-2 bg-slate-900/60 rounded-lg border border-geo-border animate-pulse">
-          <Sparkles className="h-6 w-6 text-teal-400 mx-auto animate-spin" />
-          <div className="text-xs font-medium text-slate-300">Querying Satellite STAC Endpoints</div>
-          <div className="text-[10px] text-slate-500">Searching Sentinel-2 L2A & Landsat 9 metadata...</div>
+        <div className="p-6 text-center text-muted space-y-2 bg-paper-3 rounded-card border border-rule">
+          <Layers className="h-5 w-5 text-muted-2 mx-auto motion-safe:animate-spin" aria-hidden="true" />
+          <div className="text-xs font-medium text-ink">Querying satellite catalog endpoints</div>
+          <div className="text-xs text-muted-2">Searching Sentinel-2 and Landsat observation metadata…</div>
         </div>
       )}
 
       {/* Empty State */}
       {!isLoading && scenes.length === 0 && (
-        <div className="p-6 text-center text-slate-400 space-y-2 bg-slate-900/40 rounded-lg border border-dashed border-slate-700">
-          <AlertTriangle className="h-6 w-6 text-amber-400 mx-auto" />
-          <div className="text-xs font-medium text-slate-300">No Intersecting Scenes Found</div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            No satellite acquisitions match the current date range and cloud filter. Expand the observation window or relax maximum cloud cover.
+        <div className="p-6 text-center text-muted space-y-2 bg-paper-3 rounded-card border border-dashed border-rule">
+          <AlertTriangle className="h-5 w-5 text-muted-2 mx-auto" aria-hidden="true" />
+          <div className="text-xs font-medium text-ink">No intersecting scenes found</div>
+          <p className="text-xs text-muted-2 leading-relaxed">
+            No acquisitions match the selected date range and cloud filter. Adjust dates or relax maximum cloud cover.
           </p>
         </div>
       )}
 
-      {/* Scene Cards List */}
+      {/* Scene Rows (34px Navigation Rows with 2px Gaps) */}
       {!isLoading && scenes.length > 0 && (
-        <div className="space-y-2 max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
+        <div className="space-y-[2px] max-h-[calc(100vh-320px)] overflow-y-auto pr-1">
           {scenes.map((scene) => {
             const isSelected = selectedScene?.id === scene.id;
             const isCloudMasked = scene.qualityFlag === 'cloud_masked';
@@ -80,90 +76,39 @@ export const SceneResults: React.FC<SceneResultsProps> = ({
               <div
                 key={scene.id}
                 onClick={() => onSceneSelect(isSelected ? null : scene)}
-                className={`p-2.5 rounded-lg border cursor-pointer transition-all ${
+                className={`h-[34px] px-3 rounded-control border cursor-pointer transition-colors flex items-center justify-between text-xs ${
                   isSelected
-                    ? 'bg-amber-950/40 border-amber-500/80 shadow-md shadow-amber-500/10'
-                    : 'bg-slate-900/60 border-geo-border hover:bg-slate-800/80 hover:border-slate-600'
+                    ? 'bg-paper-surface border-rule-2 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-paper-3 border-rule hover:bg-paper-2 hover:border-rule-2'
                 }`}
               >
-                {/* Header: Provider & Date */}
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-mono text-[10px] font-semibold text-teal-400 uppercase tracking-wider">
+                {/* Provider & Granule */}
+                <div className="flex items-center gap-2 truncate pr-2">
+                  <Layers className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                  <span className="font-medium text-ink truncate">
                     {scene.collection}
                   </span>
-                  <span className="text-[10px] font-mono text-slate-400">
-                    {scene.acquiredAt.replace('T', ' ').slice(0, 16)} UTC
+                  <span className="font-mono tabular-nums text-muted-2 text-xs truncate">
+                    {scene.acquiredAt.slice(0, 10)}
                   </span>
                 </div>
 
-                {/* Body: Product ID */}
-                <div className="font-mono text-[11px] text-slate-200 font-medium truncate mb-2" title={scene.productId}>
-                  {scene.productId}
-                </div>
-
-                {/* Metadata Pills */}
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
-                  {/* Cloud Cover */}
+                {/* Cloud & Quality Meta */}
+                <div className="flex items-center space-x-2 shrink-0 font-mono tabular-nums text-xs text-muted">
+                  <span className="flex items-center gap-1">
+                    <Cloud className="h-3.5 w-3.5 shrink-0 text-muted-2" aria-hidden="true" />
+                    <span>{scene.cloudCoverPct}%</span>
+                  </span>
                   <span
-                    className={`px-1.5 py-0.5 rounded flex items-center gap-1 ${
+                    className={`px-1.5 py-0.5 rounded-sm border text-xs ${
                       isCloudMasked
-                        ? 'bg-rose-950/60 text-rose-300 border border-rose-800/50'
-                        : 'bg-slate-800 text-slate-300'
+                        ? 'border-error/40 text-error'
+                        : 'border-rule text-muted'
                     }`}
                   >
-                    <Cloud className="h-2.5 w-2.5" />
-                    {scene.cloudCoverPct}% Cloud
+                    {scene.resolutionMeters}m
                   </span>
-
-                  {/* Resolution */}
-                  <span className="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">
-                    {scene.resolutionMeters}m GSD
-                  </span>
-
-                  {/* Quality Flag */}
-                  <span
-                    className={`px-1.5 py-0.5 rounded flex items-center gap-0.5 ${
-                      isCloudMasked
-                        ? 'bg-amber-950/60 text-amber-300'
-                        : 'bg-emerald-950/60 text-emerald-300'
-                    }`}
-                  >
-                    {isCloudMasked ? (
-                      <AlertTriangle className="h-2.5 w-2.5" />
-                    ) : (
-                      <CheckCircle className="h-2.5 w-2.5" />
-                    )}
-                    {scene.qualityFlag}
-                  </span>
-
-                  {/* Demo/Synthetic Flag */}
-                  {scene.isDemoSynthetic && (
-                    <span className="bg-purple-950/50 text-purple-300 border border-purple-500/30 px-1 py-0.5 rounded text-[9px]">
-                      DEMO FIXTURE
-                    </span>
-                  )}
                 </div>
-
-                {/* Detailed inspector if selected */}
-                {isSelected && (
-                  <div className="mt-2.5 pt-2 border-t border-slate-800/80 text-[10px] font-mono space-y-1 text-slate-400 bg-slate-950/40 p-2 rounded">
-                    <div className="flex justify-between">
-                      <span>Provider:</span>
-                      <span className="text-slate-200">{scene.provider}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sun Elevation:</span>
-                      <span className="text-slate-200">{scene.sunElevation}°</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sun Azimuth:</span>
-                      <span className="text-slate-200">{scene.sunAzimuth}°</span>
-                    </div>
-                    <div className="text-[9px] text-teal-400 font-semibold mt-1">
-                      Footprint active and highlighted in amber on map canvas
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -172,4 +117,3 @@ export const SceneResults: React.FC<SceneResultsProps> = ({
     </div>
   );
 };
-

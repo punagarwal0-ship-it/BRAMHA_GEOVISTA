@@ -6,12 +6,10 @@ import {
   Square,
   Upload,
   Trash2,
-  Bookmark,
   CheckCircle2,
   AlertCircle,
   ChevronRight,
-  Sparkles,
-  Info
+  Compass
 } from 'lucide-react';
 import { AOI } from '../types/api';
 import { CURATED_AOIS } from '../services/mockData';
@@ -39,17 +37,14 @@ export const AOITools: React.FC<AOIToolsProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
 
-  // Search places or coordinates
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
 
-    // Check if query is coordinates (e.g. "88.9, 21.8" or "21.8, 88.9")
     const coordMatch = searchQuery.match(/^(-?\d+(\.\d+)?)[,\s]+(-?\d+(\.\d+)?)$/);
     if (coordMatch) {
       let num1 = parseFloat(coordMatch[1]);
       let num2 = parseFloat(coordMatch[3]);
-      // Heuristic: lat is between -90 and 90; if num1 > 90, assume num1 is lon
       let lon = num1 > 90 || num1 < -90 ? num1 : num2;
       let lat = num1 > 90 || num1 < -90 ? num2 : num1;
 
@@ -59,7 +54,7 @@ export const AOITools: React.FC<AOIToolsProps> = ({
 
       const aoi: AOI = {
         id: `aoi-${Date.now()}`,
-        name: `Coordinate Center (${lon.toFixed(3)}, ${lat.toFixed(3)})`,
+        name: `Center (${lon.toFixed(3)}, ${lat.toFixed(3)})`,
         geometry: { type: 'Point', coordinates: [lon, lat] },
         areaSqKm: area,
         crs: 'EPSG:4326',
@@ -73,7 +68,6 @@ export const AOITools: React.FC<AOIToolsProps> = ({
       return;
     }
 
-    // Otherwise geocode via OpenStreetMap Nominatim
     setIsSearching(true);
     try {
       const res = await fetch(
@@ -105,16 +99,15 @@ export const AOITools: React.FC<AOIToolsProps> = ({
         onAoiChange(aoi);
         setSearchQuery('');
       } else {
-        setUploadError(`No geographic locations found for "${searchQuery}". Try coordinates (e.g. 88.5, 21.8).`);
+        setUploadError(`No locations found for "${searchQuery}". Enter coordinates like 88.5, 21.8.`);
       }
-    } catch (err) {
-      setUploadError('Geocoding service unavailable. Please enter coordinates or use preset AOIs.');
+    } catch {
+      setUploadError('Geocoding service unavailable. Enter coordinates or pick a reference site.');
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Handle GeoJSON File Upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError(null);
     setUploadSuccess(null);
@@ -122,7 +115,7 @@ export const AOITools: React.FC<AOIToolsProps> = ({
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setUploadError('File size exceeds 5MB limit. Please upload an AOI boundary.');
+      setUploadError('File size exceeds 5MB limit.');
       return;
     }
 
@@ -150,10 +143,9 @@ export const AOITools: React.FC<AOIToolsProps> = ({
         area = calculatePolygonAreaSqKm(buffered.coordinates[0]);
       }
 
-      // Max AOI limit check
       const maxAoi = parseFloat(import.meta.env.VITE_MAX_AOI_SQKM || '100000');
       if (area > maxAoi) {
-        setUploadError(`Area (${area.toLocaleString()} km²) exceeds allowed platform maximum of ${maxAoi.toLocaleString()} km².`);
+        setUploadError(`Area (${area.toLocaleString()} km²) exceeds platform limit of ${maxAoi.toLocaleString()} km².`);
         return;
       }
 
@@ -170,7 +162,7 @@ export const AOITools: React.FC<AOIToolsProps> = ({
       };
 
       onAoiChange(newAoi);
-      setUploadSuccess(`Successfully loaded ${newAoi.name} (${area.toLocaleString()} km²)`);
+      setUploadSuccess(`Loaded ${newAoi.name} (${area.toLocaleString()} km²)`);
     };
 
     reader.onerror = () => {
@@ -183,77 +175,74 @@ export const AOITools: React.FC<AOIToolsProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Search Input */}
+      {/* Search Input (34px Row) */}
       <form onSubmit={handleSearch} className="relative">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search place or lon, lat (e.g. 88.9, 21.8)..."
-          className="w-full bg-slate-900/90 border border-geo-border focus:border-teal-400 text-xs text-slate-100 placeholder-slate-500 rounded-lg pl-8 pr-16 py-2.5 outline-none transition-colors"
+          placeholder="Search place or lon, lat (e.g. 88.9, 21.8)…"
+          className="w-full h-[34px] bg-paper-3 rounded-control border border-rule focus:border-ink-2 text-xs text-ink placeholder-muted-2 pl-9 pr-16 outline-none transition-colors"
         />
-        <Search className="absolute left-2.5 top-3 h-3.5 w-3.5 text-slate-400" />
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
         <button
           type="submit"
           disabled={isSearching}
-          className="absolute right-1.5 top-1.5 px-2.5 py-1 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-700 text-white text-[11px] font-semibold rounded-md transition-colors"
+          className="absolute right-1 top-1 h-[26px] px-3 rounded-control bg-paper-surface hover:bg-paper-surface-hover text-ink border border-rule text-xs font-medium transition-colors disabled:opacity-50"
         >
-          {isSearching ? '...' : 'Go'}
+          {isSearching ? '…' : 'Locate'}
         </button>
       </form>
 
-      {/* Geometry Draw Buttons */}
+      {/* Geometry Draw Buttons (34px Row Height with 2px Gaps) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-          Select or Draw AOI
+        <label className="text-xs font-medium text-muted block mb-2">
+          Select or draw area
         </label>
-        <div className="grid grid-cols-3 gap-2">
-          {/* Point Tool */}
+        <div className="grid grid-cols-3 gap-[2px]">
           <button
             onClick={() => setDrawingMode(drawingMode === 'point' ? 'none' : 'point')}
-            className={`flex flex-col items-center justify-center p-2 rounded-lg border text-xs transition-all ${
+            className={`h-[34px] flex items-center justify-center gap-1.5 px-2 rounded-control border text-xs transition-colors ${
               drawingMode === 'point'
-                ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-md shadow-teal-500/20'
-                : 'bg-slate-800/60 border-geo-border text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-paper-surface border-rule-2 text-ink font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                : 'bg-paper-3 border-rule text-muted hover:bg-paper-2 hover:text-ink'
             }`}
           >
-            <MapPin className="h-4 w-4 mb-1 text-teal-400" />
-            <span className="font-medium">Point + Buffer</span>
+            <MapPin className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
+            <span className="truncate">Point buffer</span>
           </button>
 
-          {/* Polygon Tool */}
           <button
             onClick={() => setDrawingMode(drawingMode === 'polygon' ? 'none' : 'polygon')}
-            className={`flex flex-col items-center justify-center p-2 rounded-lg border text-xs transition-all ${
+            className={`h-[34px] flex items-center justify-center gap-1.5 px-2 rounded-control border text-xs transition-colors ${
               drawingMode === 'polygon'
-                ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-md shadow-teal-500/20'
-                : 'bg-slate-800/60 border-geo-border text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-paper-surface border-rule-2 text-ink font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                : 'bg-paper-3 border-rule text-muted hover:bg-paper-2 hover:text-ink'
             }`}
           >
-            <Pentagon className="h-4 w-4 mb-1 text-teal-400" />
-            <span className="font-medium">Draw Polygon</span>
+            <Pentagon className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
+            <span className="truncate">Draw polygon</span>
           </button>
 
-          {/* Box Tool */}
           <button
             onClick={() => setDrawingMode(drawingMode === 'box' ? 'none' : 'box')}
-            className={`flex flex-col items-center justify-center p-2 rounded-lg border text-xs transition-all ${
+            className={`h-[34px] flex items-center justify-center gap-1.5 px-2 rounded-control border text-xs transition-colors ${
               drawingMode === 'box'
-                ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-md shadow-teal-500/20'
-                : 'bg-slate-800/60 border-geo-border text-slate-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-paper-surface border-rule-2 text-ink font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                : 'bg-paper-3 border-rule text-muted hover:bg-paper-2 hover:text-ink'
             }`}
           >
-            <Square className="h-4 w-4 mb-1 text-teal-400" />
-            <span className="font-medium">Draw Box</span>
+            <Square className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
+            <span className="truncate">Draw box</span>
           </button>
         </div>
 
         {/* Point Buffer Radius Slider */}
         {drawingMode === 'point' && (
-          <div className="mt-2.5 p-2.5 rounded-lg bg-slate-900/80 border border-teal-500/30 text-xs">
-            <div className="flex justify-between items-center text-slate-300 mb-1">
-              <span>Analysis Buffer Radius:</span>
-              <span className="font-mono text-teal-400 font-semibold">{pointBufferKm} km</span>
+          <div className="mt-2.5 p-3 rounded-control bg-paper-3 border border-rule text-xs">
+            <div className="flex justify-between items-center text-muted mb-1.5">
+              <span>Analysis radius</span>
+              <span className="font-mono tabular-nums text-ink font-medium">{pointBufferKm} km</span>
             </div>
             <input
               type="range"
@@ -262,17 +251,17 @@ export const AOITools: React.FC<AOIToolsProps> = ({
               step={1}
               value={pointBufferKm}
               onChange={(e) => setPointBufferKm(parseInt(e.target.value, 10))}
-              className="w-full accent-teal-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
+              className="w-full accent-ink h-1 bg-rule cursor-pointer"
             />
           </div>
         )}
       </div>
 
-      {/* Upload GeoJSON Boundary */}
+      {/* Upload GeoJSON Boundary (34px Row) */}
       <div>
-        <label className="relative flex items-center justify-center space-x-2 border border-dashed border-slate-700 hover:border-teal-400/70 bg-slate-900/40 hover:bg-slate-800/50 rounded-lg p-2.5 cursor-pointer transition-colors text-xs text-slate-300">
-          <Upload className="h-3.5 w-3.5 text-teal-400" />
-          <span>Upload GeoJSON File (.geojson / .json)</span>
+        <label className="relative h-[34px] flex items-center justify-center space-x-2 border border-dashed border-rule hover:border-rule-2 bg-paper-3 hover:bg-paper-2 px-3 rounded-control cursor-pointer transition-colors text-xs text-muted">
+          <Upload className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
+          <span>Upload boundary file (.geojson, .json)</span>
           <input
             type="file"
             accept=".geojson,.json"
@@ -282,29 +271,26 @@ export const AOITools: React.FC<AOIToolsProps> = ({
         </label>
 
         {uploadError && (
-          <div className="mt-2 flex items-start space-x-2 text-rose-300 bg-rose-950/40 border border-rose-800/50 p-2 rounded text-[11px]">
-            <AlertCircle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-rose-400" />
+          <div className="mt-2 flex items-start space-x-2 text-error bg-paper-3 rounded-control border border-error/30 p-2.5 text-xs">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-error" aria-hidden="true" />
             <span>{uploadError}</span>
           </div>
         )}
 
         {uploadSuccess && (
-          <div className="mt-2 flex items-center space-x-2 text-emerald-300 bg-emerald-950/40 border border-emerald-800/50 p-2 rounded text-[11px]">
-            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          <div className="mt-2 flex items-center space-x-2 text-success bg-paper-3 rounded-control border border-success/30 p-2.5 text-xs">
+            <CheckCircle2 className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
             <span>{uploadSuccess}</span>
           </div>
         )}
       </div>
 
-      {/* Curated Pre-set Test Sites */}
+      {/* Curated Pre-set Reference Sites (Quiet 34px Navigation Rows with 2px Gaps) */}
       <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-teal-400" />
-            Curated Reference AOIs
-          </label>
-        </div>
-        <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted block mb-2">
+          Curated reference sites
+        </label>
+        <div className="space-y-[2px]">
           {CURATED_AOIS.map((preset) => {
             const isSelected = activeAoi?.id === preset.id;
             return (
@@ -316,19 +302,22 @@ export const AOITools: React.FC<AOIToolsProps> = ({
                   setUploadError(null);
                   setUploadSuccess(null);
                 }}
-                className={`w-full text-left p-2 rounded-lg border text-xs flex items-center justify-between transition-all ${
+                className={`w-full h-[34px] px-3 rounded-control border text-xs flex items-center justify-between transition-colors ${
                   isSelected
-                    ? 'bg-teal-950/50 border-teal-400/80 text-teal-200'
-                    : 'bg-slate-800/40 border-geo-border text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    ? 'bg-paper-surface border-rule-2 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-paper-3 border-rule text-muted hover:bg-paper-2 hover:text-ink'
                 }`}
               >
-                <div>
-                  <div className="font-medium truncate">{preset.name}</div>
-                  <div className="text-[10px] text-slate-400 font-mono">
-                    {preset.areaSqKm.toLocaleString()} km² • {preset.center[1]}°N, {preset.center[0]}°E
-                  </div>
+                <div className="flex items-center gap-2 truncate pr-2">
+                  <MapPin className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                  <span className="font-medium text-ink truncate">{preset.name}</span>
                 </div>
-                <ChevronRight className={`h-3.5 w-3.5 ${isSelected ? 'text-teal-400' : 'text-slate-500'}`} />
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="font-mono tabular-nums text-muted text-xs">
+                    {preset.areaSqKm.toLocaleString()} km²
+                  </span>
+                  <ChevronRight className={`h-4 w-4 shrink-0 ${isSelected ? 'text-ink' : 'text-muted-2'}`} aria-hidden="true" />
+                </div>
               </button>
             );
           })}
@@ -337,34 +326,34 @@ export const AOITools: React.FC<AOIToolsProps> = ({
 
       {/* Selected AOI Metrics Box */}
       {activeAoi && (
-        <div className="p-3 rounded-lg bg-slate-900/90 border border-teal-500/40 space-y-2 text-xs">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="font-semibold text-teal-300 truncate">{activeAoi.name}</span>
+        <div className="p-3 bg-paper-2 rounded-card border border-rule space-y-2.5 text-xs">
+          <div className="flex items-center justify-between border-b border-rule pb-1.5">
+            <span className="font-medium text-ink truncate">{activeAoi.name}</span>
             <button
               onClick={() => onAoiChange(null)}
-              className="text-slate-400 hover:text-rose-400 p-1 rounded transition-colors"
-              title="Clear Active AOI"
+              className="text-muted hover:text-error p-1 transition-colors"
+              title="Clear active area"
+              aria-label="Clear active area"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-            <div className="bg-slate-800/50 p-1.5 rounded">
-              <span className="text-slate-400 block text-[10px]">Surface Area</span>
-              <span className="text-slate-100 font-semibold">{activeAoi.areaSqKm.toLocaleString()} km²</span>
-              <span className="text-slate-400 text-[9px] block">({(activeAoi.areaSqKm * 100).toLocaleString()} ha)</span>
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono tabular-nums">
+            <div className="bg-paper-3 p-2 rounded-control border border-rule">
+              <span className="text-muted-2 block text-xs font-sans">Surface area</span>
+              <span className="text-ink font-medium">{activeAoi.areaSqKm.toLocaleString()}</span>
+              <span className="text-muted text-xs font-sans"> km²</span>
             </div>
-            <div className="bg-slate-800/50 p-1.5 rounded">
-              <span className="text-slate-400 block text-[10px]">CRS / Datum</span>
-              <span className="text-slate-100 font-semibold">{activeAoi.crs}</span>
-              <span className="text-slate-400 text-[9px] block">WGS84 Ellipsoid</span>
+            <div className="bg-paper-3 p-2 rounded-control border border-rule">
+              <span className="text-muted-2 block text-xs font-sans">Datum reference</span>
+              <span className="text-ink font-medium">{activeAoi.crs}</span>
             </div>
           </div>
 
-          <div className="text-[10px] font-mono text-slate-400 bg-slate-800/30 p-1.5 rounded">
-            <span className="text-slate-500 block">Bounding Extent [W, S, E, N]:</span>
-            <span className="text-slate-300">
+          <div className="text-xs text-muted bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 block text-xs mb-0.5 font-sans">Extent [west, south, east, north]</span>
+            <span className="font-mono tabular-nums text-ink">
               [{activeAoi.bbox.map((v) => v.toFixed(3)).join(', ')}]
             </span>
           </div>
@@ -373,4 +362,3 @@ export const AOITools: React.FC<AOIToolsProps> = ({
     </div>
   );
 };
-

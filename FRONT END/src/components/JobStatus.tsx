@@ -3,16 +3,7 @@ import {
   Activity,
   Play,
   RotateCcw,
-  CheckCircle,
-  AlertTriangle,
-  Clock,
-  ExternalLink,
-  Trash2,
-  Bookmark,
-  Layers,
-  ChevronRight,
-  Sparkles,
-  ShieldAlert
+  AlertTriangle
 } from 'lucide-react';
 import { AnalysisJob, AOI, PhenomenonType } from '../types/api';
 
@@ -44,149 +35,115 @@ export const JobStatus: React.FC<JobStatusProps> = ({
   return (
     <div className="space-y-4 text-xs select-none">
       {/* Submit Analysis Job Card */}
-      <div className="p-3 rounded-lg bg-slate-900/90 border border-teal-500/50 space-y-2.5">
+      <div className="p-3 bg-paper-2 rounded-card border border-rule space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-slate-100 flex items-center gap-1.5 text-xs">
-            <Sparkles className="h-3.5 w-3.5 text-teal-400" />
-            Dispatch Geospatial Analysis Job
+          <span className="font-medium text-ink flex items-center gap-1.5 text-xs">
+            <Activity className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
+            <span>Dispatch analysis job</span>
           </span>
-          <span className="text-[10px] font-mono text-teal-400 bg-teal-950 px-1.5 py-0.5 rounded">
-            POST /api/analysis/jobs
+          <span className="text-xs font-mono text-muted bg-paper-3 px-2 py-0.5 rounded-sm border border-rule">
+            Execution queue
           </span>
         </div>
 
-        <p className="text-[11px] text-slate-400 leading-relaxed">
-          Submit the active AOI geometry, phenomenon, and requested indicators to the asynchronous analytical execution queue.
+        <p className="text-xs text-muted-2 leading-relaxed">
+          Submit the active geometry and requested indicator to the async execution queue.
         </p>
 
-        {/* Edge Case Simulation Selector (for thorough verification) */}
+        {/* Edge Case Simulation Selector (34px Control) */}
         <div>
-          <label className="text-[10px] text-slate-400 font-semibold block mb-1">
-            Pipeline Simulation Mode / Edge Cases:
+          <label className="text-xs text-muted-2 block mb-1">
+            Pipeline test condition
           </label>
           <select
             value={selectedEdgeCase}
             onChange={(e: any) => setSelectedEdgeCase(e.target.value)}
-            className="w-full bg-slate-950 border border-geo-border text-slate-200 text-xs rounded p-1.5 outline-none font-mono"
+            className="w-full h-[34px] bg-paper-3 rounded-control border border-rule text-ink text-xs px-2.5 outline-none font-mono"
           >
-            <option value="normal">Standard Pipeline (Full History + Forecast)</option>
-            <option value="insufficient_history">Edge Case: Insufficient Historical Depth (&lt;12 obs)</option>
-            <option value="cloud_failure">Edge Case: Cloud Contamination Failure (&gt;85% cloud)</option>
-            <option value="partial_data">Edge Case: Partial Analytical Results</option>
+            <option value="normal">Standard pipeline (full history and forecast)</option>
+            <option value="insufficient_history">Edge case: insufficient depth (&lt;12 observations)</option>
+            <option value="cloud_failure">Edge case: cloud contamination failure (&gt;85%)</option>
+            <option value="partial_data">Edge case: partial analytical results</option>
           </select>
         </div>
 
+        {/* Action Button (34px Row) */}
         <button
           onClick={() => onSubmitNewJob(selectedEdgeCase)}
           disabled={!activeAoi || isSubmitting}
-          className="w-full py-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-white font-semibold rounded-lg shadow-lg shadow-teal-500/20 flex items-center justify-center space-x-2 transition-all text-xs"
+          className="w-full h-[34px] rounded-control bg-ink hover:bg-white disabled:bg-paper-3 disabled:text-muted-2 text-paper font-medium text-xs whitespace-nowrap flex items-center justify-center space-x-2 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
         >
           {isSubmitting ? (
             <>
-              <Activity className="h-3.5 w-3.5 animate-spin" />
-              <span>Queueing Pipeline Job...</span>
+              <Activity className="h-4 w-4 shrink-0 motion-safe:animate-spin" aria-hidden="true" />
+              <span>Queueing job…</span>
             </>
           ) : (
             <>
-              <Play className="h-3.5 w-3.5 fill-current" />
-              <span>Submit Analysis for {activeAoi ? activeAoi.name : 'Select AOI First'}</span>
+              <Play className="h-4 w-4 shrink-0 fill-current" aria-hidden="true" />
+              <span className="truncate">
+                {activeAoi ? `Run analysis: ${activeAoi.name}` : 'Select an area first'}
+              </span>
             </>
           )}
         </button>
       </div>
 
-      {/* Jobs Queue List */}
+      {/* Jobs Queue List (34px Rows with 2px Gaps) */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block flex items-center justify-between">
-          <span>Active & Historical Jobs ({jobs.length})</span>
-          <span className="text-[10px] text-teal-400 font-mono">Async Queue</span>
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-medium text-muted">
+            Job queue ({jobs.length})
+          </label>
+          <span className="text-xs text-muted-2 font-mono">Async queue</span>
+        </div>
 
         {jobs.length === 0 ? (
-          <div className="p-6 text-center text-slate-500 bg-slate-900/40 rounded-lg border border-dashed border-slate-800">
+          <div className="p-6 text-center text-muted-2 bg-paper-3 rounded-card border border-dashed border-rule">
             No analysis jobs submitted yet.
           </div>
         ) : (
-          <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+          <div className="space-y-[2px] max-h-[380px] overflow-y-auto pr-1">
             {jobs.map((job) => {
               const isSelected = activeJobId === job.id;
               const isRunning = job.status === 'running' || job.status === 'queued';
               const isFailed = job.status === 'failed';
-              const isCompleted = job.status === 'completed';
 
               return (
                 <div
                   key={job.id}
                   onClick={() => onSelectJob(job.id)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                  className={`h-[34px] px-3 rounded-control border cursor-pointer transition-colors flex items-center justify-between text-xs ${
                     isSelected
-                      ? 'bg-slate-800/90 border-teal-400 shadow-md shadow-teal-500/10'
-                      : 'bg-slate-900/60 border-geo-border hover:bg-slate-800/60'
+                      ? 'bg-paper-surface border-rule-2 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                      : 'bg-paper-3 border-rule hover:bg-paper-2'
                   }`}
                 >
-                  {/* Job Header */}
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-slate-200 text-xs truncate max-w-[170px]">
+                  <div className="flex items-center gap-2 truncate pr-2">
+                    <Activity className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                    <span className="font-medium text-ink truncate">
                       {job.aoiName}
                     </span>
+                    <span className="font-mono text-xs text-muted-2 truncate">
+                      ({job.indicator})
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2 shrink-0 font-mono tabular-nums text-xs">
                     <span
-                      className={`px-1.5 py-0.5 rounded text-[10px] font-mono uppercase font-semibold ${
+                      className={`px-1.5 py-0.5 rounded-sm border text-xs ${
                         isRunning
-                          ? 'bg-teal-950 text-teal-300 border border-teal-800 animate-pulse'
+                          ? 'border-rule text-ink-2 bg-paper-2'
                           : isFailed
-                          ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                          : 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          ? 'border-error/40 text-error'
+                          : 'border-success/40 text-success'
                       }`}
                     >
                       {job.status}
                     </span>
-                  </div>
-
-                  {/* Phenomenon & Indicator Pill */}
-                  <div className="text-[10px] font-mono text-slate-400 mb-2">
-                    {job.phenomenon.toUpperCase()} • {job.indicator.toUpperCase()} • {job.aggregation}
-                  </div>
-
-                  {/* Progress Bar */}
-                  {isRunning && (
-                    <div className="space-y-1 my-2">
-                      <div className="flex justify-between text-[10px] font-mono text-slate-400">
-                        <span className="truncate max-w-[180px]">{job.currentStage}</span>
-                        <span className="text-teal-400 font-bold">{job.progressPct}%</span>
-                      </div>
-                      <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-300"
-                          style={{ width: `${job.progressPct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Error Message & Retry */}
-                  {isFailed && (
-                    <div className="mt-2 p-2 rounded bg-rose-950/40 border border-rose-800/50 text-[10px] text-rose-300 space-y-1">
-                      <div className="flex items-start gap-1">
-                        <AlertTriangle className="h-3 w-3 shrink-0 text-rose-400 mt-0.5" />
-                        <span>{job.error}</span>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSubmitNewJob('normal');
-                        }}
-                        className="mt-1 px-2 py-0.5 bg-rose-800 hover:bg-rose-700 text-white font-semibold rounded text-[10px] flex items-center space-x-1"
-                      >
-                        <RotateCcw className="h-3 w-3" />
-                        <span>Retry Analysis</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Footer Timestamps */}
-                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 mt-2 pt-1.5 border-t border-slate-800/60">
-                    <span>Job ID: {job.id.slice(0, 12)}</span>
-                    <span>{job.submittedAt.slice(11, 19)} UTC</span>
+                    <span className="text-muted-2 text-xs">
+                      {job.submittedAt.slice(11, 16)} UTC
+                    </span>
                   </div>
                 </div>
               );
@@ -197,4 +154,3 @@ export const JobStatus: React.FC<JobStatusProps> = ({
     </div>
   );
 };
-

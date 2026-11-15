@@ -68,94 +68,103 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
 
   if (isCollapsed) {
     return (
-      <div className="absolute right-0 top-14 bottom-0 w-10 bg-slate-900/95 border-l border-geo-border flex flex-col items-center py-3 space-y-4 z-20 backdrop-blur-md">
+      <div className="absolute right-0 top-[88px] bottom-0 w-10 bg-paper-2 border-l border-rule flex flex-col items-center py-4 space-y-4 z-20">
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-400 transition-colors"
-          title="Expand Analysis Dashboard"
+          className="h-[34px] w-[34px] flex items-center justify-center rounded-control bg-paper-3 hover:bg-paper-surface text-muted hover:text-ink border border-rule transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+          title="Expand analysis dashboard"
+          aria-label="Expand analysis dashboard"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
 
-        <div className="writing-vertical text-slate-400 text-xs font-semibold tracking-wider uppercase rotate-180">
-          Analysis Dashboard
+        <div className="writing-vertical text-muted text-xs font-medium rotate-180">
+          Analysis dashboard
         </div>
       </div>
     );
   }
 
   return (
-    <aside className="w-96 md:w-[420px] bg-slate-900/95 border-l border-geo-border flex flex-col z-20 backdrop-blur-md overflow-hidden select-none shadow-2xl">
+    <aside className="w-96 md:w-[416px] bg-paper-2 border-l border-rule flex flex-col z-20 overflow-hidden select-none">
       {/* Panel Header */}
-      <div className="h-12 border-b border-geo-border px-3.5 flex items-center justify-between shrink-0">
+      <div className="h-14 border-b border-rule px-4 flex items-center justify-between shrink-0 bg-paper">
         <div className="flex items-center space-x-2">
-          <Activity className="h-4 w-4 text-teal-400" />
-          <span className="font-semibold text-slate-100 text-xs tracking-wider uppercase">
-            Geospatial Analytics
+          <Activity className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
+          <span className="font-medium text-ink text-xs">
+            Geospatial analytics
           </span>
         </div>
 
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
-          title="Collapse Panel"
+          className="h-[34px] w-[34px] flex items-center justify-center rounded-control bg-paper-3 hover:bg-paper-surface text-muted hover:text-ink border border-rule transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+          title="Collapse analysis panel"
+          aria-label="Collapse analysis panel"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </div>
 
-      {/* Tabs Header */}
-      <div className="flex border-b border-geo-border bg-slate-950/60 p-1 shrink-0 text-xs">
+      {/* Tabs Header - Quiet 34px Navigation Rows with 2px Gaps */}
+      <div className="flex border-b border-rule bg-paper p-[2px] shrink-0 text-xs gap-[2px]">
         <button
           onClick={() => setActiveTab('indicators')}
-          className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all ${
+          className={`h-[34px] flex-1 flex items-center justify-center gap-1.5 px-3 rounded-control font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus ${
             activeTab === 'indicators'
-              ? 'bg-geo-accent text-slate-900 font-semibold shadow'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-paper-surface text-ink border border-rule shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+              : 'text-muted hover:text-ink hover:bg-paper-surface/50 border border-transparent'
           }`}
         >
-          Historical
+          <Activity className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+          <span>Historical</span>
         </button>
 
         <button
           onClick={() => setActiveTab('forecast')}
-          className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all ${
+          className={`h-[34px] flex-1 flex items-center justify-center gap-1.5 px-3 rounded-control font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus ${
             activeTab === 'forecast'
-              ? 'bg-amber-500 text-slate-900 font-semibold shadow'
-              : 'text-amber-400/80 hover:text-amber-300'
+              ? 'bg-paper-surface text-ink border border-rule shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+              : 'text-muted hover:text-ink hover:bg-paper-surface/50 border border-transparent'
           }`}
         >
-          Forecast
+          <TrendingUp className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+          <span>Forecast</span>
         </button>
 
         <button
           onClick={() => setActiveTab('overview')}
-          className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all ${
+          className={`h-[34px] flex-1 flex items-center justify-center gap-1.5 px-3 rounded-control font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus ${
             activeTab === 'overview'
-              ? 'bg-geo-accent text-slate-900 font-semibold shadow'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-paper-surface text-ink border border-rule shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+              : 'text-muted hover:text-ink hover:bg-paper-surface/50 border border-transparent'
           }`}
         >
-          Scene
+          <Layers className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+          <span>Scene</span>
         </button>
 
         <button
           onClick={() => setActiveTab('jobs')}
-          className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all relative ${
+          className={`h-[34px] flex-1 flex items-center justify-center gap-1.5 px-3 rounded-control font-medium transition-colors relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus ${
             activeTab === 'jobs'
-              ? 'bg-geo-accent text-slate-900 font-semibold shadow'
-              : 'text-slate-400 hover:text-slate-200'
+              ? 'bg-paper-surface text-ink border border-rule shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+              : 'text-muted hover:text-ink hover:bg-paper-surface/50 border border-transparent'
           }`}
         >
-          Jobs
+          <Clock className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+          <span>Jobs</span>
           {jobs.some((j) => j.status === 'running') && (
-            <span className="absolute top-1 right-2 h-2 w-2 rounded-full bg-teal-400 animate-ping" />
+            <span
+              className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-ink-2"
+              aria-hidden="true"
+            />
           )}
         </button>
       </div>
 
       {/* Tab Contents */}
-      <div className="flex-1 overflow-y-auto p-3.5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {activeTab === 'indicators' && (
           <TimeSeriesChart
             observations={observations}
@@ -175,51 +184,51 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
         )}
 
         {activeTab === 'overview' && (
-          <div className="space-y-3.5 text-xs">
+          <div className="space-y-4 text-xs">
             {/* Selected Scene Metadata Card */}
             {selectedScene ? (
-              <div className="p-3 rounded-lg bg-slate-900/90 border border-teal-500/40 space-y-2.5">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-                  <span className="font-semibold text-teal-300">Selected Satellite Granule</span>
-                  <span className="text-[10px] font-mono text-slate-400">{selectedScene.collection}</span>
+              <div className="p-3 rounded-card bg-paper-3 border border-rule space-y-2.5">
+                <div className="flex items-center justify-between border-b border-rule pb-1.5">
+                  <span className="font-medium text-ink">Selected satellite granule</span>
+                  <span className="text-xs font-mono text-muted">{selectedScene.collection}</span>
                 </div>
 
-                <div className="text-[11px] font-mono text-slate-200 break-all bg-slate-950 p-2 rounded">
+                <div className="text-xs font-mono text-ink break-all bg-paper p-2 rounded-control border border-rule">
                   {selectedScene.productId}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
-                  <div className="bg-slate-800/60 p-2 rounded">
-                    <span className="text-slate-400 block text-[9px]">Acquisition Date</span>
-                    <span className="text-slate-100 font-semibold">
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono tabular-nums">
+                  <div className="bg-paper-2 p-2 rounded-control border border-rule">
+                    <span className="text-muted-2 block text-xs font-sans">Acquisition date</span>
+                    <span className="text-ink font-medium">
                       {selectedScene.acquiredAt.slice(0, 10)}
                     </span>
                   </div>
-                  <div className="bg-slate-800/60 p-2 rounded">
-                    <span className="text-slate-400 block text-[9px]">Time (UTC)</span>
-                    <span className="text-slate-100 font-semibold">
+                  <div className="bg-paper-2 p-2 rounded-control border border-rule">
+                    <span className="text-muted-2 block text-xs font-sans">Time (UTC)</span>
+                    <span className="text-ink font-medium">
                       {selectedScene.acquiredAt.slice(11, 19)}
                     </span>
                   </div>
-                  <div className="bg-slate-800/60 p-2 rounded">
-                    <span className="text-slate-400 block text-[9px]">Cloud Cover</span>
-                    <span className="text-cyan-400 font-semibold">{selectedScene.cloudCoverPct}%</span>
+                  <div className="bg-paper-2 p-2 rounded-control border border-rule">
+                    <span className="text-muted-2 block text-xs font-sans">Cloud cover</span>
+                    <span className="text-ink font-medium">{selectedScene.cloudCoverPct}%</span>
                   </div>
-                  <div className="bg-slate-800/60 p-2 rounded">
-                    <span className="text-slate-400 block text-[9px]">Spatial Resolution</span>
-                    <span className="text-slate-100 font-semibold">{selectedScene.resolutionMeters}m GSD</span>
+                  <div className="bg-paper-2 p-2 rounded-control border border-rule">
+                    <span className="text-muted-2 block text-xs font-sans">Spatial resolution</span>
+                    <span className="text-ink font-medium">{selectedScene.resolutionMeters}m GSD</span>
                   </div>
                 </div>
 
-                <div className="text-[10px] text-slate-400 pt-1">
-                  Provider: <span className="text-slate-200 font-semibold">{selectedScene.provider}</span>
+                <div className="text-xs text-muted pt-1">
+                  Provider: <span className="text-ink font-medium">{selectedScene.provider}</span>
                 </div>
               </div>
             ) : (
-              <div className="p-6 text-center text-slate-400 bg-slate-900/40 rounded-lg border border-dashed border-slate-800">
-                <Layers className="h-6 w-6 text-slate-600 mx-auto mb-2" />
-                <div className="text-xs font-semibold text-slate-300">No Scene Selected</div>
-                <p className="text-[11px] text-slate-500 mt-1">
+              <div className="p-6 text-center text-muted bg-paper-3 rounded-card border border-dashed border-rule">
+                <Layers className="h-6 w-6 text-muted-2 mx-auto mb-2" aria-hidden="true" />
+                <div className="text-xs font-medium text-ink">No scene selected</div>
+                <p className="text-xs text-muted-2 mt-1">
                   Click any satellite footprint on the map or select an acquisition from the catalog tab.
                 </p>
               </div>
@@ -227,12 +236,12 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
 
             {/* Active AOI Summary */}
             {activeAoi && (
-              <div className="p-3 rounded-lg bg-slate-900/60 border border-geo-border space-y-2">
-                <span className="font-semibold text-slate-200 block text-xs">
-                  Target Area of Interest
+              <div className="p-3 rounded-card bg-paper-3 border border-rule space-y-2">
+                <span className="font-medium text-ink block text-xs">
+                  Target area of interest
                 </span>
-                <div className="text-slate-300 font-medium text-xs">{activeAoi.name}</div>
-                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono text-slate-400">
+                <div className="text-ink font-medium text-xs">{activeAoi.name}</div>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono tabular-nums text-muted">
                   <div>Area: {activeAoi.areaSqKm.toLocaleString()} km²</div>
                   <div>Centroid: {activeAoi.center[1]}°N, {activeAoi.center[0]}°E</div>
                 </div>
@@ -257,4 +266,3 @@ export const AnalysisPanel: React.FC<AnalysisPanelProps> = ({
     </aside>
   );
 };
-

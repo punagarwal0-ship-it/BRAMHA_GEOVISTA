@@ -387,7 +387,7 @@ export function generateCatalogScenes(aoi: AOI): ObservationScene[] {
       sunAzimuth: Number((135 + Math.random() * 20).toFixed(1)),
       sunElevation: Number((42 + Math.random() * 15).toFixed(1)),
       thumbnailUrl: `https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?auto=format&fit=crop&w=400&q=80`,
-      assetUri: `s3://geovista-data-lake/catalog/${prov.prefix}_sample.tif`,
+      assetUri: `s3://bramha-data-lake/catalog/${prov.prefix}_sample.tif`,
       isDemoSynthetic: true
     });
   });
@@ -616,7 +616,7 @@ export function generateHistoricalAnalysis(
       url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // Placeholder tile structure; map canvas renders synthetic colormaps on top
       visible: true,
       opacity: 0.75,
-      attribution: 'GEOVISTA Feature Pipeline',
+      attribution: 'BRAMHA Feature Pipeline',
       description: `Calibrated spatial distribution of ${indicator.toUpperCase()} index.`,
       legend: {
         title: indicator.toUpperCase(),

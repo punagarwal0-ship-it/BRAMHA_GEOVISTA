@@ -1,20 +1,15 @@
 import React from 'react';
 import {
   Layers,
-  Sliders,
   Calendar,
   Cloud,
   Eye,
   EyeOff,
-  Database,
-  Map as MapIcon,
-  HelpCircle,
-  BarChart2
+  Map as MapIcon
 } from 'lucide-react';
 import {
   PhenomenonType,
-  LayerDefinition,
-  SatelliteCollection
+  LayerDefinition
 } from '../types/api';
 import { PHENOMENA_CONFIGS, SUPPORTED_COLLECTIONS } from '../services/mockData';
 
@@ -61,15 +56,15 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
 
   return (
     <div className="space-y-4 text-xs select-none">
-      {/* Phenomenon Selector (Section 5 of Brief) */}
+      {/* Phenomenon Selector (34px Control) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-          Analysis Phenomenon
+        <label className="text-xs font-medium text-muted block mb-1.5">
+          Analysis phenomenon
         </label>
         <select
           value={phenomenon}
           onChange={(e) => onPhenomenonChange(e.target.value as PhenomenonType)}
-          className="w-full bg-slate-900 border border-geo-border focus:border-teal-400 text-slate-100 rounded-lg p-2 outline-none font-medium text-xs transition-colors"
+          className="w-full h-[34px] bg-paper-3 rounded-control border border-rule focus:border-ink-2 text-ink px-3 outline-none font-medium text-xs transition-colors"
         >
           {Object.values(PHENOMENA_CONFIGS).map((cfg) => (
             <option key={cfg.id} value={cfg.id}>
@@ -77,138 +72,142 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
             </option>
           ))}
         </select>
-        <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+        <p className="text-xs text-muted-2 mt-1.5 leading-relaxed">
           {currentPhenomenonConfig.description}
         </p>
       </div>
 
-      {/* Indicator Selector driven by Phenomenon (Strict brief rule: Do not show unsupported indicators) */}
+      {/* Primary Indicator Selector (34px Rows with 2px Gaps) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5">
-          Primary Indicator / Index
+        <label className="text-xs font-medium text-muted block mb-1.5">
+          Primary indicator
         </label>
-        <div className="space-y-1.5">
+        <div className="space-y-[2px]">
           {currentPhenomenonConfig.supportedIndicators.map((ind) => {
             const isSelected = indicator === ind.id;
             return (
               <button
                 key={ind.id}
                 onClick={() => onIndicatorChange(ind.id)}
-                className={`w-full text-left p-2 rounded-lg border transition-all ${
+                className={`w-full h-[34px] px-3 rounded-control border flex items-center justify-between transition-colors ${
                   isSelected
-                    ? 'bg-teal-950/60 border-teal-400 text-teal-200'
-                    : 'bg-slate-800/40 border-geo-border text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                    ? 'bg-paper-surface border-rule-2 text-ink font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-paper-3 border-rule text-muted hover:bg-paper-2 hover:text-ink'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-xs">{ind.name}</span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-teal-300">
-                    {ind.unit}
-                  </span>
-                </div>
-                {ind.formula && (
-                  <div className="text-[10px] font-mono text-slate-400 mt-0.5">
-                    Formula: {ind.formula}
-                  </div>
-                )}
+                <span className="text-xs font-medium truncate">{ind.name}</span>
+                <span className="text-xs px-1.5 py-0.5 rounded-sm bg-paper-2 text-muted border border-rule font-mono tabular-nums shrink-0">
+                  {ind.unit}
+                </span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Satellite Constellations & Sensors */}
+      {/* Satellite Constellations & Sensors (34px Rows with 2px Gaps) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center justify-between">
-          <span>Satellite Constellations</span>
-          <span className="text-[10px] text-teal-400 font-mono">STAC Ready</span>
-        </label>
-        <div className="space-y-1.5">
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="text-xs font-medium text-muted">
+            Satellite constellations
+          </label>
+          <span className="text-xs text-muted-2 font-mono">Catalog</span>
+        </div>
+        <div className="space-y-[2px]">
           {SUPPORTED_COLLECTIONS.map((col) => {
             const isChecked = selectedCollections.includes(col.id);
             return (
               <div
                 key={col.id}
                 onClick={() => onToggleCollection(col.id)}
-                className={`p-2 rounded-lg border cursor-pointer transition-all flex items-start space-x-2.5 ${
+                className={`w-full h-[34px] px-3 rounded-control border cursor-pointer transition-colors flex items-center justify-between ${
                   isChecked
-                    ? 'bg-slate-800/70 border-teal-500/40 text-slate-200'
-                    : 'bg-slate-900/30 border-geo-border text-slate-400 opacity-70'
+                    ? 'bg-paper-surface border-rule-2 text-ink'
+                    : 'bg-paper-3 border-rule text-muted opacity-70'
                 }`}
               >
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => {}}
-                  className="mt-0.5 accent-teal-400 rounded cursor-pointer"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-slate-200 leading-tight">{col.name}</div>
-                  <div className="text-[10px] font-mono text-slate-400">
-                    {col.sensor} • {col.resolutionMeters}m res • Revisit {col.revisitDays}d
-                  </div>
+                <div className="flex items-center gap-2 truncate pr-2">
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => {}}
+                    className="accent-ink cursor-pointer shrink-0"
+                  />
+                  <span className="font-medium text-ink truncate leading-tight">{col.name}</span>
                 </div>
+                <span className="text-xs text-muted-2 font-mono tabular-nums shrink-0">
+                  {col.resolutionMeters}m · {col.revisitDays}d revisit
+                </span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Date Range & Temporal Aggregation */}
+      {/* Observation Window & Temporal Aggregation */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block flex items-center gap-1">
-          <Calendar className="h-3 w-3 text-teal-400" />
-          Observation Window & Aggregation
+        <label className="text-xs font-medium text-muted block flex items-center gap-1.5">
+          <Calendar className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
+          <span>Observation window and aggregation</span>
         </label>
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <span className="text-[10px] text-slate-400 block mb-1">Start Date</span>
+            <span className="text-xs text-muted-2 block mb-1">Start date</span>
             <input
               type="date"
               value={dateRange.startDate}
               onChange={(e) => onDateRangeChange({ ...dateRange, startDate: e.target.value })}
-              className="w-full bg-slate-900 border border-geo-border text-slate-200 rounded p-1.5 font-mono text-[11px] outline-none"
+              className="w-full h-[34px] bg-paper-3 rounded-control border border-rule text-ink px-2.5 font-mono text-xs outline-none"
             />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 block mb-1">End Date</span>
+            <span className="text-xs text-muted-2 block mb-1">End date</span>
             <input
               type="date"
               value={dateRange.endDate}
               onChange={(e) => onDateRangeChange({ ...dateRange, endDate: e.target.value })}
-              className="w-full bg-slate-900 border border-geo-border text-slate-200 rounded p-1.5 font-mono text-[11px] outline-none"
+              className="w-full h-[34px] bg-paper-3 rounded-control border border-rule text-ink px-2.5 font-mono text-xs outline-none"
             />
           </div>
         </div>
 
+        {/* 34px Aggregation Buttons with 2px Gaps */}
         <div>
-          <span className="text-[10px] text-slate-400 block mb-1">Temporal Aggregation</span>
-          <div className="grid grid-cols-5 gap-1 text-[10px] font-mono">
-            {(['daily', '5day', 'monthly', 'seasonal', 'annual'] as const).map((agg) => (
+          <span className="text-xs text-muted-2 block mb-1">Temporal aggregation</span>
+          <div className="grid grid-cols-5 gap-[2px] text-xs font-mono">
+            {(
+              [
+                { id: 'daily', label: 'Daily' },
+                { id: '5day', label: '5-day' },
+                { id: 'monthly', label: 'Monthly' },
+                { id: 'seasonal', label: 'Seasonal' },
+                { id: 'annual', label: 'Annual' }
+              ] as const
+            ).map((agg) => (
               <button
-                key={agg}
-                onClick={() => onAggregationChange(agg)}
-                className={`py-1 rounded border text-center uppercase font-medium transition-colors ${
-                  aggregation === agg
-                    ? 'bg-teal-500/20 border-teal-400 text-teal-300'
-                    : 'bg-slate-900/40 border-geo-border text-slate-400 hover:text-slate-200'
+                key={agg.id}
+                onClick={() => onAggregationChange(agg.id)}
+                className={`h-[34px] rounded-control border text-center transition-colors ${
+                  aggregation === agg.id
+                    ? 'bg-paper-surface border-rule-2 text-ink font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'bg-paper-3 border-rule text-muted hover:text-ink'
                 }`}
               >
-                {agg}
+                {agg.label}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Max Cloud Cover Filter */}
-      <div className="p-2.5 rounded-lg bg-slate-900/60 border border-geo-border">
-        <div className="flex justify-between items-center text-slate-300 mb-1">
-          <span className="flex items-center gap-1">
-            <Cloud className="h-3 w-3 text-cyan-400" />
-            Max Cloud Cover:
+      {/* Maximum Cloud Cover Filter */}
+      <div className="p-3 bg-paper-3 rounded-card border border-rule">
+        <div className="flex justify-between items-center text-muted mb-1.5">
+          <span className="flex items-center gap-1.5">
+            <Cloud className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
+            <span>Maximum cloud cover</span>
           </span>
-          <span className="font-mono text-cyan-400 font-semibold">{maxCloudCover}%</span>
+          <span className="font-mono tabular-nums text-ink font-medium">{maxCloudCover}%</span>
         </div>
         <input
           type="range"
@@ -217,36 +216,36 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
           step={5}
           value={maxCloudCover}
           onChange={(e) => onMaxCloudCoverChange(parseInt(e.target.value, 10))}
-          className="w-full accent-cyan-400 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
+          className="w-full accent-ink h-1 bg-rule cursor-pointer"
         />
-        <div className="flex justify-between text-[9px] text-slate-500 font-mono mt-0.5">
-          <span>0% (Cloud-Free)</span>
+        <div className="flex justify-between text-xs text-muted-2 font-mono tabular-nums mt-1">
+          <span>0%</span>
           <span>50%</span>
-          <span>100% (All Scenes)</span>
+          <span>100%</span>
         </div>
       </div>
 
-      {/* Basemap Switcher */}
+      {/* Basemap Switcher (34px Rows with 2px Gaps) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1">
-          <MapIcon className="h-3 w-3 text-teal-400" />
-          Basemap
+        <label className="text-xs font-medium text-muted block mb-1.5 flex items-center gap-1.5">
+          <MapIcon className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
+          <span>Basemap layer</span>
         </label>
-        <div className="grid grid-cols-3 gap-1.5">
+        <div className="grid grid-cols-3 gap-[2px]">
           {(
             [
               { id: 'satellite', label: 'Satellite' },
-              { id: 'dark', label: 'Dark Topo' },
-              { id: 'osm', label: 'OpenStreet' }
+              { id: 'dark', label: 'Dark topo' },
+              { id: 'osm', label: 'OpenStreetMap' }
             ] as const
           ).map((b) => (
             <button
               key={b.id}
               onClick={() => onBaseMapChange(b.id)}
-              className={`py-1.5 rounded-md border text-center text-[11px] font-medium transition-all ${
+              className={`h-[34px] rounded-control border text-center text-xs font-medium transition-colors ${
                 activeBaseMap === b.id
-                  ? 'bg-teal-500/20 border-teal-400 text-teal-300 shadow-sm'
-                  : 'bg-slate-800/40 border-geo-border text-slate-300 hover:text-white'
+                  ? 'bg-paper-surface border-rule-2 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                  : 'bg-paper-3 border-rule text-muted hover:text-ink'
               }`}
             >
               {b.label}
@@ -255,37 +254,38 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
         </div>
       </div>
 
-      {/* Map Layers Stack & Opacity */}
+      {/* Map Layers Stack (34px Rows with 2px Gaps) */}
       <div>
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1">
-          <Layers className="h-3 w-3 text-teal-400" />
-          Map Layer Stack
+        <label className="text-xs font-medium text-muted block mb-1.5 flex items-center gap-1.5">
+          <Layers className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
+          <span>Map layer stack</span>
         </label>
-        <div className="space-y-2">
+        <div className="space-y-[2px]">
           {layers.map((layer) => (
             <div
               key={layer.id}
-              className="p-2 rounded-lg bg-slate-900/60 border border-geo-border space-y-1.5"
+              className="h-[34px] px-3 rounded-control bg-paper-3 border border-rule flex items-center justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-slate-200 text-xs truncate max-w-[170px]">
-                  {layer.name}
-                </span>
+              <div className="flex items-center gap-2 truncate pr-2">
                 <button
                   onClick={() => onToggleLayerVisibility(layer.id)}
-                  className="text-slate-400 hover:text-slate-200 p-0.5"
+                  className="text-muted hover:text-ink transition-colors"
+                  aria-label={layer.visible ? 'Hide layer' : 'Show layer'}
                 >
                   {layer.visible ? (
-                    <Eye className="h-3.5 w-3.5 text-teal-400" />
+                    <Eye className="h-4 w-4 shrink-0 text-ink" aria-hidden="true" />
                   ) : (
-                    <EyeOff className="h-3.5 w-3.5 text-slate-500" />
+                    <EyeOff className="h-4 w-4 shrink-0 text-muted-2" aria-hidden="true" />
                   )}
                 </button>
+                <span className="font-medium text-ink text-xs truncate max-w-[170px]">
+                  {layer.name}
+                </span>
               </div>
 
               {layer.visible && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-[10px] text-slate-400 w-12 font-mono">
+                <div className="flex items-center space-x-2 shrink-0">
+                  <span className="text-xs text-muted-2 w-8 font-mono tabular-nums text-right">
                     {Math.round(layer.opacity * 100)}%
                   </span>
                   <input
@@ -295,7 +295,7 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
                     step={0.05}
                     value={layer.opacity}
                     onChange={(e) => onChangeLayerOpacity(layer.id, parseFloat(e.target.value))}
-                    className="flex-1 accent-teal-400 h-1 bg-slate-700 rounded-lg cursor-pointer"
+                    className="w-16 accent-ink h-1 bg-rule cursor-pointer"
                   />
                 </div>
               )}
@@ -306,22 +306,22 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
 
       {/* Colormap Legend */}
       {currentPhenomenonConfig.colorRamp && (
-        <div className="p-2.5 rounded-lg bg-slate-900/80 border border-geo-border space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] text-slate-300 font-semibold">
-            <span>Color Ramp Legend</span>
-            <span className="font-mono text-teal-400 text-[10px]">
+        <div className="p-3 bg-paper-2 rounded-card border border-rule space-y-1.5">
+          <div className="flex items-center justify-between text-xs text-ink font-medium">
+            <span>Color ramp legend</span>
+            <span className="font-mono text-muted text-xs">
               {currentPhenomenonConfig.colorRamp.name}
             </span>
           </div>
 
-          <div className="space-y-1 text-[10px] font-mono">
+          <div className="space-y-1 text-xs">
             {currentPhenomenonConfig.colorRamp.stops.map((stop, sIdx) => (
               <div key={sIdx} className="flex items-center space-x-2">
                 <div
-                  className="w-3.5 h-3.5 rounded border border-slate-700 shrink-0"
+                  className="w-3 h-3 rounded-sm border border-rule shrink-0"
                   style={{ backgroundColor: stop.color }}
                 />
-                <span className="text-slate-300">{stop.label}</span>
+                <span className="text-muted">{stop.label}</span>
               </div>
             ))}
           </div>
@@ -330,4 +330,3 @@ export const LayerPanel: React.FC<LayerPanelProps> = ({
     </div>
   );
 };
-

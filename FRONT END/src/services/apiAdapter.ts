@@ -13,8 +13,8 @@ import {
 } from '../types/api';
 import { CURATED_AOIS, generateCatalogScenes, generateHistoricalAnalysis } from './mockData';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-const FORCE_MOCK = import.meta.env.VITE_ENABLE_MOCK_DATA !== 'false';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const FORCE_MOCK = import.meta.env.VITE_ENABLE_MOCK_DATA === 'true';
 
 // In-memory store for active synthetic jobs
 const activeSyntheticJobs = new Map<string, AnalysisJob>();
@@ -51,7 +51,7 @@ syntheticJobResults.set(demoJob1.id, {
 
 /**
  * ApiAdapter handles both live backend communication (FastAPI / REST)
- * and seamless fallback to typed synthetic fixtures clearly marked DEMO/SYNTHETIC.
+ * and graceful fallback to typed synthetic fixtures clearly marked DEMO/SYNTHETIC.
  */
 export const apiAdapter = {
   isLiveApiConfigured(): boolean {

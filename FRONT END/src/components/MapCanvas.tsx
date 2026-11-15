@@ -7,15 +7,15 @@ import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import XYZ from 'ol/source/XYZ';
 import { fromLonLat, toLonLat } from 'ol/proj';
+import { getRenderPixel } from 'ol/render';
 import GeoJSON from 'ol/format/GeoJSON';
-import { Draw, Modify, Snap } from 'ol/interaction';
+import { Draw } from 'ol/interaction';
 import { createBox } from 'ol/interaction/Draw';
-import { Style, Fill, Stroke, Circle as CircleStyle, Text } from 'ol/style';
+import { Style, Fill, Stroke, Circle as CircleStyle } from 'ol/style';
 import Feature from 'ol/Feature';
 import Polygon from 'ol/geom/Polygon';
-import Point from 'ol/geom/Point';
-import { Maximize2, Minimize2, ZoomIn, ZoomOut, Compass, SplitSquareVertical } from 'lucide-react';
-import { AOI, ObservationScene, LayerDefinition } from '../types/api';
+import { ZoomIn, ZoomOut, Compass, SplitSquareVertical } from 'lucide-react';
+import { AOI, ObservationScene, LayerDefinition, DatasetRecord } from '../types/api';
 import { calculateBoundingBox, calculatePolygonAreaSqKm, createPointBufferPolygon } from '../services/geoUtils';
 
 interface MapCanvasProps {
@@ -31,6 +31,10 @@ interface MapCanvasProps {
   compareMode: boolean;
   compareDateA?: string;
   compareDateB?: string;
+  compareRecordA?: DatasetRecord | null;
+  compareRecordB?: DatasetRecord | null;
+  swipePosition?: number;
+  onSwipePositionChange?: (pos: number) => void;
   pointBufferKm?: number;
 }
 
@@ -47,6 +51,10 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
   compareMode,
   compareDateA = '2023-01-15',
   compareDateB = '2024-02-15',
+  compareRecordA,
+  compareRecordB,
+  swipePosition: controlledSwipePosition,
+  onSwipePositionChange,
   pointBufferKm = 15
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -57,7 +65,10 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
 
   const [mouseCoords, setMouseCoords] = useState<{ lon: number; lat: number } | null>(null);
   const [zoomLevel, setZoomLevel] = useState<number>(5);
-  const [swipePosition, setSwipePosition] = useState<number>(50); // percentage 0-100
+  const [internalSwipe, setInternalSwipe] = useState<number>(50); // percentage 0-100
+  const swipePosition = controlledSwipePosition !== undefined ? controlledSwipePosition : internalSwipe;
+  const swipePositionRef = useRef<number>(swipePosition);
+  swipePositionRef.current = swipePosition;
   const isDraggingSwipe = useRef<boolean>(false);
 
   // Basemap Tile Sources
@@ -108,17 +119,17 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
         const isSelected = feature.get('isSelected');
         return new Style({
           fill: new Fill({
-            color: 'rgba(20, 184, 166, 0.18)' // Semi-transparent teal
+            color: 'rgba(78, 203, 153, 0.16)' // Sumi-Sage green tint
           }),
           stroke: new Stroke({
-            color: '#14b8a6', // Crisp teal border
-            width: 2.5,
-            lineDash: isSelected ? undefined : [6, 4]
+            color: '#4ecb99', // Sumi-Sage accent
+            width: 2,
+            lineDash: isSelected ? undefined : [4, 4]
           }),
           image: new CircleStyle({
-            radius: 6,
-            fill: new Fill({ color: '#14b8a6' }),
-            stroke: new Stroke({ color: '#ffffff', width: 2 })
+            radius: 5,
+            fill: new Fill({ color: '#4ecb99' }),
+            stroke: new Stroke({ color: '#ffffff', width: 1.5 })
           })
         });
       }
@@ -133,11 +144,11 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
         const isCurrent = selectedScene && selectedScene.id === sceneId;
         return new Style({
           fill: new Fill({
-            color: isCurrent ? 'rgba(245, 158, 11, 0.22)' : 'rgba(56, 189, 248, 0.08)'
+            color: isCurrent ? 'rgba(78, 203, 153, 0.22)' : 'rgba(100, 180, 240, 0.08)'
           }),
           stroke: new Stroke({
-            color: isCurrent ? '#f59e0b' : 'rgba(56, 189, 248, 0.6)',
-            width: isCurrent ? 3 : 1.5
+            color: isCurrent ? '#4ecb99' : 'rgba(100, 180, 240, 0.6)',
+            width: isCurrent ? 2 : 1
           })
         });
       }
@@ -156,10 +167,9 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
         minZoom: 2,
         maxZoom: 18
       }),
-      controls: [] // Custom minimal HUD controls
+      controls: [] // Minimal HUD
     });
 
-    // Pointer move listener for coordinates & hover
     map.on('pointermove', (evt) => {
       const coords = toLonLat(evt.coordinate);
       setMouseCoords({
@@ -168,12 +178,10 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
       });
     });
 
-    // Zoom listener
     map.getView().on('change:resolution', () => {
       setZoomLevel(Math.round(map.getView().getZoom() || 5));
     });
 
-    // Click listener to select scene footprints
     map.on('singleclick', (evt) => {
       if (drawingMode !== 'none') return;
       let clickedScene: ObservationScene | null = null;
@@ -196,16 +204,30 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     };
   }, []);
 
+  // Handle Container Resizing (e.g. sidebar collapse/expand, viewport changes)
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    const ro = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.updateSize();
+        mapRef.current.render();
+      }
+    });
+    ro.observe(mapContainerRef.current);
+    return () => ro.disconnect();
+  }, []);
+
   // Update Basemap
   useEffect(() => {
     if (!baseLayerRef.current) return;
     baseLayerRef.current.setSource(baseSources[activeBaseMap]);
   }, [activeBaseMap]);
 
-  // Update Compare Swipe Layer Rendering
+  // Update Compare Swipe Layer Rendering with HiDPI Canvas Coordinate Transformation
   useEffect(() => {
     const compareLayer = compareLayerRef.current;
-    if (!compareLayer || !mapRef.current) return;
+    const map = mapRef.current;
+    if (!compareLayer || !map) return;
 
     if (!compareMode) {
       compareLayer.setVisible(false);
@@ -213,16 +235,51 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     }
 
     compareLayer.setVisible(true);
-    compareLayer.setSource(baseSources.osm); // Visual contrast for compare split
+    compareLayer.setSource(baseSources.osm);
 
-    // Render clipping on postrender / prerender
     const handlePrerender = (event: any) => {
       const ctx = event.context as CanvasRenderingContext2D;
-      const mapSize = mapRef.current?.getSize() || [1000, 800];
-      const width = mapSize[0] * (swipePosition / 100);
+      const currentMap = mapRef.current;
+      if (!currentMap) return;
+      const mapSize = currentMap.getSize();
+      if (!mapSize) return;
+
+      const currentSwipe = swipePositionRef.current;
+      const width = mapSize[0] * (currentSwipe / 100);
+
+      let tl = [0, 0];
+      let tr = [width, 0];
+      let bl = [0, mapSize[1]];
+      let br = [width, mapSize[1]];
+
+      try {
+        if (event.inversePixelTransform) {
+          tl = getRenderPixel(event, [0, 0]);
+          tr = getRenderPixel(event, [width, 0]);
+          bl = getRenderPixel(event, [0, mapSize[1]]);
+          br = getRenderPixel(event, [width, mapSize[1]]);
+        } else {
+          const dpr = window.devicePixelRatio || 1;
+          tl = [0, 0];
+          tr = [width * dpr, 0];
+          bl = [0, mapSize[1] * dpr];
+          br = [width * dpr, mapSize[1] * dpr];
+        }
+      } catch {
+        const dpr = window.devicePixelRatio || 1;
+        tl = [0, 0];
+        tr = [width * dpr, 0];
+        bl = [0, mapSize[1] * dpr];
+        br = [width * dpr, mapSize[1] * dpr];
+      }
+
       ctx.save();
       ctx.beginPath();
-      ctx.rect(0, 0, width, mapSize[1]);
+      ctx.moveTo(tl[0], tl[1]);
+      ctx.lineTo(tr[0], tr[1]);
+      ctx.lineTo(br[0], br[1]);
+      ctx.lineTo(bl[0], bl[1]);
+      ctx.closePath();
       ctx.clip();
     };
 
@@ -234,13 +291,20 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     compareLayer.on('prerender', handlePrerender);
     compareLayer.on('postrender', handlePostrender);
 
-    mapRef.current.render();
+    map.render();
 
     return () => {
       compareLayer.un('prerender', handlePrerender);
       compareLayer.un('postrender', handlePostrender);
     };
-  }, [compareMode, swipePosition]);
+  }, [compareMode]);
+
+  // Trigger Map Re-render when Swipe Position Changes
+  useEffect(() => {
+    if (compareMode && mapRef.current) {
+      mapRef.current.render();
+    }
+  }, [swipePosition, compareMode]);
 
   // Update AOI on Map
   useEffect(() => {
@@ -253,8 +317,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     let geometry = activeAoi.geometry;
 
     if (geometry.type === 'Point') {
-      // Buffer point to polygon for area display
-      const bufferRadius = activeAoi.bufferKm || 15;
+      const bufferRadius = activeAoi.bufferKm || pointBufferKm || 15;
       geometry = createPointBufferPolygon(geometry.coordinates, bufferRadius);
     }
 
@@ -272,13 +335,12 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
 
     aoiSourceRef.current.addFeature(feature);
 
-    // Zoom extent to AOI
     if (mapRef.current) {
       const extent = feature.getGeometry()?.getExtent();
       if (extent) {
         mapRef.current.getView().fit(extent, {
-          padding: [80, 80, 80, 80],
-          duration: 900,
+          padding: [60, 60, 60, 60],
+          duration: 600,
           maxZoom: 12
         });
       }
@@ -366,7 +428,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
 
         const newAoi: AOI = {
           id: `aoi-${Date.now()}`,
-          name: `Point AOI (${coords[0].toFixed(2)}, ${coords[1].toFixed(2)}) + ${radius}km Buffer`,
+          name: `Point AOI (${coords[0].toFixed(2)}, ${coords[1].toFixed(2)}) + ${radius}km buffer`,
           geometry: { type: 'Point', coordinates: coords },
           areaSqKm: area,
           crs: 'EPSG:4326',
@@ -383,7 +445,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
 
         const newAoi: AOI = {
           id: `aoi-${Date.now()}`,
-          name: `Drawn AOI (${area.toLocaleString()} km²)`,
+          name: `Drawn area (${area.toLocaleString()} km²)`,
           geometry: geojsonGeom,
           areaSqKm: area,
           crs: 'EPSG:4326',
@@ -405,7 +467,7 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
         map.removeInteraction(drawInteractionRef.current);
       }
     };
-  }, [drawingMode]);
+  }, [drawingMode, pointBufferKm]);
 
   // Swipe dragging handlers
   const handleMouseDownSwipe = (e: React.MouseEvent) => {
@@ -419,8 +481,12 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     if (!isDraggingSwipe.current || !mapContainerRef.current) return;
     const rect = mapContainerRef.current.getBoundingClientRect();
     const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const pct = (x / rect.width) * 100;
-    setSwipePosition(pct);
+    const pct = Math.max(5, Math.min(95, (x / rect.width) * 100));
+    if (onSwipePositionChange) {
+      onSwipePositionChange(pct);
+    } else {
+      setInternalSwipe(pct);
+    }
   };
 
   const handleMouseUpSwipe = () => {
@@ -432,13 +498,13 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
   const handleZoomIn = () => {
     if (!mapRef.current) return;
     const view = mapRef.current.getView();
-    view.animate({ zoom: (view.getZoom() || 5) + 1, duration: 250 });
+    view.animate({ zoom: (view.getZoom() || 5) + 1, duration: 200 });
   };
 
   const handleZoomOut = () => {
     if (!mapRef.current) return;
     const view = mapRef.current.getView();
-    view.animate({ zoom: (view.getZoom() || 5) - 1, duration: 250 });
+    view.animate({ zoom: (view.getZoom() || 5) - 1, duration: 200 });
   };
 
   const handleResetExtent = () => {
@@ -447,8 +513,8 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
       const feat = aoiSourceRef.current.getFeatures()[0];
       if (feat && feat.getGeometry()) {
         mapRef.current.getView().fit(feat.getGeometry()!.getExtent(), {
-          padding: [80, 80, 80, 80],
-          duration: 700
+          padding: [60, 60, 60, 60],
+          duration: 500
         });
         return;
       }
@@ -458,12 +524,12 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
     mapRef.current.getView().animate({
       center: fromLonLat([defaultLon, defaultLat]),
       zoom: 5,
-      duration: 700
+      duration: 500
     });
   };
 
   return (
-    <div className="relative w-full h-full bg-[#0b0f19] overflow-hidden select-none">
+    <div className="relative w-full h-full bg-paper-3 overflow-hidden select-none">
       {/* OpenLayers Map Canvas Mount */}
       <div ref={mapContainerRef} className="w-full h-full" />
 
@@ -474,87 +540,91 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({
           style={{ left: `${swipePosition}%` }}
         >
           {/* Vertical split line */}
-          <div className="w-0.5 h-full bg-teal-400 shadow-[0_0_10px_rgba(20,184,166,0.8)]" />
+          <div className="w-px h-full bg-rule-2" />
           
-          {/* Drag Handle */}
+          {/* Drag Handle (34px) */}
           <div
             onMouseDown={handleMouseDownSwipe}
-            className="absolute w-9 h-9 rounded-full bg-slate-900 border-2 border-teal-400 text-teal-300 flex items-center justify-center cursor-ew-resize shadow-2xl pointer-events-auto hover:scale-110 active:scale-95 transition-transform"
+            className="absolute w-[34px] h-[34px] rounded-control bg-paper-2 border border-rule-2 text-ink flex items-center justify-center cursor-ew-resize pointer-events-auto transition-transform active:scale-95 shadow-md"
             title="Drag to swipe between comparison dates"
           >
-            <SplitSquareVertical className="h-4 w-4" />
+            <SplitSquareVertical className="h-4 w-4 shrink-0" aria-hidden="true" />
           </div>
 
-          {/* Date A / Date B labels */}
-          <div className="absolute top-4 -left-32 bg-slate-900/90 border border-teal-500/40 text-teal-300 px-2.5 py-1 rounded text-[11px] font-mono shadow-lg">
-            Date A: {compareDateA}
+          {/* Record A / Record B labels */}
+          <div className="absolute top-4 -left-48 bg-paper-2 rounded-control border border-rule text-ink px-2.5 py-1 text-xs font-mono tabular-nums truncate max-w-[180px]">
+            {compareRecordA
+              ? `A: ${compareRecordA.timestamp.slice(0, 10)} (${compareRecordA.recordId})`
+              : `Date A: ${compareDateA}`}
           </div>
-          <div className="absolute top-4 left-6 bg-slate-900/90 border border-cyan-500/40 text-cyan-300 px-2.5 py-1 rounded text-[11px] font-mono shadow-lg">
-            Date B: {compareDateB}
+          <div className="absolute top-4 left-6 bg-paper-2 rounded-control border border-rule text-ink-2 px-2.5 py-1 text-xs font-mono tabular-nums truncate max-w-[180px]">
+            {compareRecordB
+              ? `B: ${compareRecordB.timestamp.slice(0, 10)} (${compareRecordB.recordId})`
+              : `Date B: ${compareDateB}`}
           </div>
         </div>
       )}
 
       {/* Drawing Instructions Banner */}
       {drawingMode !== 'none' && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-slate-900/95 border border-teal-500/80 text-teal-300 px-4 py-2 rounded-lg shadow-2xl flex items-center space-x-3 text-xs animate-bounce">
-          <span className="h-2 w-2 rounded-full bg-teal-400 animate-ping" />
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 bg-paper-2 rounded-control border border-rule-2 text-ink px-4 py-2 flex items-center space-x-2 text-xs shadow-md">
+          <span className="h-2 w-2 rounded-full bg-ink shrink-0" />
           <span>
-            {drawingMode === 'polygon' && 'Click on the map to define polygon vertices. Double-click to close boundary.'}
+            {drawingMode === 'polygon' && 'Click on the map to define vertices; double-click to close boundary.'}
             {drawingMode === 'box' && 'Click and drag across the map to draw a bounding rectangle.'}
             {drawingMode === 'point' && 'Click anywhere to drop a coordinate point and generate an analytical radius buffer.'}
           </span>
         </div>
       )}
 
-      {/* Floating HUD Controls */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
-        {/* Reset Extent */}
+      {/* Floating HUD Controls (34px Rows with 2px Gaps) */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col gap-[2px]">
         <button
           onClick={handleResetExtent}
-          className="h-9 w-9 rounded-lg bg-slate-900/85 hover:bg-slate-800 text-slate-300 hover:text-white border border-geo-border flex items-center justify-center shadow-lg transition-all"
-          title="Reset Extent / Center on AOI"
+          className="h-[34px] w-[34px] rounded-control bg-paper-2 hover:bg-paper-surface text-muted hover:text-ink border border-rule flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+          title="Reset extent"
+          aria-label="Reset extent"
         >
-          <Compass className="h-4 w-4 text-teal-400" />
+          <Compass className="h-4 w-4 shrink-0 text-ink-2" aria-hidden="true" />
         </button>
 
-        {/* Zoom In */}
         <button
           onClick={handleZoomIn}
-          className="h-9 w-9 rounded-lg bg-slate-900/85 hover:bg-slate-800 text-slate-300 hover:text-white border border-geo-border flex items-center justify-center shadow-lg transition-all"
-          title="Zoom In"
+          className="h-[34px] w-[34px] rounded-control bg-paper-2 hover:bg-paper-surface text-muted hover:text-ink border border-rule flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+          title="Zoom in"
+          aria-label="Zoom in"
         >
-          <ZoomIn className="h-4 w-4" />
+          <ZoomIn className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
 
-        {/* Zoom Out */}
         <button
           onClick={handleZoomOut}
-          className="h-9 w-9 rounded-lg bg-slate-900/85 hover:bg-slate-800 text-slate-300 hover:text-white border border-geo-border flex items-center justify-center shadow-lg transition-all"
-          title="Zoom Out"
+          className="h-[34px] w-[34px] rounded-control bg-paper-2 hover:bg-paper-surface text-muted hover:text-ink border border-rule flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-focus"
+          title="Zoom out"
+          aria-label="Zoom out"
         >
-          <ZoomOut className="h-4 w-4" />
+          <ZoomOut className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </div>
 
-      {/* Bottom Coordinates & Scale Bar HUD */}
-      <div className="absolute bottom-3 left-4 z-10 flex items-center space-x-3 text-[11px] font-mono text-slate-300 bg-slate-900/85 px-3 py-1.5 rounded-md border border-geo-border shadow-lg">
+      {/* Bottom Coordinates & Scale Bar HUD (Quiet 34px Row) */}
+      <div className="absolute bottom-4 left-4 z-10 h-[34px] flex items-center space-x-3 text-xs text-muted bg-paper-2 px-3 rounded-control border border-rule shadow-sm">
         <div>
-          <span className="text-slate-500">Lon: </span>
-          <span className="text-teal-400 font-semibold">{mouseCoords ? mouseCoords.lon : '--'}°</span>
+          <span className="text-muted-2">Lon: </span>
+          <span className="text-ink font-mono tabular-nums">{mouseCoords ? mouseCoords.lon : '--'}°</span>
         </div>
-        <div className="w-px h-3 bg-slate-700" />
+        <div className="w-px h-3 bg-rule" />
         <div>
-          <span className="text-slate-500">Lat: </span>
-          <span className="text-teal-400 font-semibold">{mouseCoords ? mouseCoords.lat : '--'}°</span>
+          <span className="text-muted-2">Lat: </span>
+          <span className="text-ink font-mono tabular-nums">{mouseCoords ? mouseCoords.lat : '--'}°</span>
         </div>
-        <div className="w-px h-3 bg-slate-700" />
+        <div className="w-px h-3 bg-rule" />
         <div>
-          <span className="text-slate-500">Zoom: </span>
-          <span className="text-slate-200">{zoomLevel}</span>
+          <span className="text-muted-2">Zoom: </span>
+          <span className="text-ink font-mono tabular-nums">{zoomLevel}</span>
         </div>
-        <div className="w-px h-3 bg-slate-700" />
-        <div className="text-slate-400 text-[10px]">WGS84 EPSG:4326</div>
+        <div className="w-px h-3 bg-rule" />
+        <div className="text-muted-2 text-xs">WGS84 EPSG:4326</div>
       </div>
     </div>
   );

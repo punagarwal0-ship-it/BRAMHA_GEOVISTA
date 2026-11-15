@@ -212,3 +212,60 @@ export interface AnalysisJobResults {
   isDemoSynthetic: boolean;
 }
 
+// Uploaded Dataset Contracts for Comparison UI (Brief Section 5)
+export interface DatasetRecord {
+  recordId: string;
+  timestamp: string; // ISO 8601 or YYYY-MM-DD
+  assetReference?: string; // Image URL, tile URL, or preview
+  layerType?: 'raster' | 'vector' | 'tabular';
+  geometryOrExtent?: GeoJSONPolygon | [number, number, number, number];
+  variable?: string;
+  band?: string;
+  value?: number;
+  unit?: string;
+  qualityFlag?: QualityFlag | string;
+  sourceReference?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface DatasetFieldMapping {
+  idField: string;
+  timeField: string;
+  valueField: string;
+  assetField: string;
+  variableField: string;
+  geometryField?: string;
+}
+
+export interface ValidationReport {
+  status: 'valid' | 'warning' | 'invalid';
+  totalRows: number;
+  validRecords: number;
+  invalidRecords: number;
+  messages: string[];
+  missingColumns?: string[];
+}
+
+export interface UploadedDataset {
+  id: string;
+  name: string;
+  format: 'geojson' | 'csv' | 'json' | 'stac' | 'imagery';
+  sizeBytes: number;
+  rawText?: string;
+  records: DatasetRecord[];
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  availableVariables: string[];
+  spatialCoverage?: {
+    bbox: [number, number, number, number];
+    centroid: [number, number];
+  };
+  detectedFields: DatasetFieldMapping;
+  validation: ValidationReport;
+  uploadedAt: string;
+  isDemoSample?: boolean;
+}
+
+

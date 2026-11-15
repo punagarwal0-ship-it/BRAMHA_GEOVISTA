@@ -3,13 +3,7 @@ import {
   TrendingUp,
   AlertTriangle,
   ShieldAlert,
-  Info,
-  Calendar,
-  Layers,
-  Cpu,
-  BarChart,
-  HelpCircle,
-  CheckCircle2
+  Cpu
 } from 'lucide-react';
 import { ForecastPoint, ForecastModelMetadata, TimeSeriesPoint } from '../types/api';
 
@@ -23,28 +17,25 @@ interface ForecastPanelProps {
 export const ForecastPanel: React.FC<ForecastPanelProps> = ({
   forecast,
   metadata,
-  historicalObservations,
-  indicator
+  historicalObservations
 }) => {
   const [hoveredForecast, setHoveredForecast] = useState<ForecastPoint | null>(null);
 
-  // Insufficient Data / No Forecast handling
   if (!forecast || forecast.length === 0 || !metadata) {
     return (
-      <div className="p-6 text-center text-slate-400 bg-slate-900/40 rounded-lg border border-amber-500/30 space-y-3">
-        <AlertTriangle className="h-7 w-7 text-amber-400 mx-auto" />
-        <div className="text-xs font-semibold text-amber-300">
-          Predictive Horizon Unavailable
+      <div className="p-6 text-center text-muted bg-paper-3 rounded-card border border-dashed border-rule space-y-2">
+        <AlertTriangle className="h-5 w-5 text-muted-2 mx-auto" aria-hidden="true" />
+        <div className="text-xs font-medium text-ink">
+          Predictive horizon unavailable
         </div>
-        <p className="text-[11px] text-slate-400 leading-relaxed max-w-sm mx-auto">
+        <p className="text-xs text-muted-2 leading-relaxed max-w-sm mx-auto">
           {metadata?.warningNotice ||
-            'Insufficient historical depth or high cloud contamination prevents validated forecasting. Minimum 12 consecutive observations required.'}
+            'Insufficient historical depth or cloud contamination prevents validated forecasting. Minimum 12 consecutive observations required.'}
         </p>
       </div>
     );
   }
 
-  // Combined visualization: Last 6 historical observations + 6 future forecast steps
   const recentHistory = historicalObservations.slice(-6);
   const combinedPoints = [
     ...recentHistory.map((h) => ({
@@ -67,7 +58,6 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
     }))
   ];
 
-  // SVG Chart dimensions
   const allVals = [
     ...combinedPoints.map((p) => p.val),
     ...combinedPoints.map((p) => p.lower95),
@@ -82,10 +72,10 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
 
   const width = 600;
   const height = 230;
-  const padLeft = 45;
-  const padRight = 25;
+  const padLeft = 44;
+  const padRight = 24;
   const padTop = 20;
-  const padBottom = 30;
+  const padBottom = 28;
 
   const plotWidth = width - padLeft - padRight;
   const plotHeight = height - padTop - padBottom;
@@ -98,10 +88,9 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
     return padTop + plotHeight - ((val - yMin) / yRange) * plotHeight;
   };
 
-  const splitIndex = recentHistory.length - 1; // Index of last historical point
+  const splitIndex = recentHistory.length - 1;
   const splitX = getX(splitIndex);
 
-  // Shaded polygon paths for 95% and 80% confidence interval bands
   const forecastIndices = combinedPoints
     .map((p, i) => (i >= splitIndex ? i : null))
     .filter((i) => i !== null) as number[];
@@ -120,54 +109,59 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
     .join(' ');
 
   return (
-    <div className="space-y-3.5 text-xs select-none">
-      {/* Strict Scientific Safeguard Banner (Brief Requirement 4.E & 12) */}
-      <div className="p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/50 flex items-start space-x-2 text-amber-200">
-        <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-        <div className="text-[11px] leading-relaxed">
-          <span className="font-semibold text-amber-300 block">Scientific Model Disclaimer</span>
-          Model predictions are statistical extrapolations derived from calibrated features. They are
-          not direct physical measurements and carry widening confidence intervals.
+    <div className="space-y-4 text-xs select-none">
+      {/* Scientific Safeguard Banner */}
+      <div className="p-3 bg-paper-2 rounded-card border border-rule flex items-start space-x-2.5 text-muted">
+        <ShieldAlert className="h-4 w-4 text-muted-2 shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="text-xs leading-relaxed">
+          <span className="font-medium text-ink block">Scientific model disclaimer</span>
+          Model predictions are statistical extrapolations derived from calibrated features; they are
+          not direct sensor observations and carry widening confidence bounds.
         </div>
       </div>
 
       {/* Forecast Chart Header */}
       <div className="flex items-center justify-between">
         <div>
-          <span className="font-semibold text-slate-200 block text-xs">
-            Predictive Horizon: {forecast.length} Steps Forward
+          <span className="font-medium text-ink block text-xs">
+            Predictive horizon: {forecast.length} steps forward
           </span>
-          <span className="text-[10px] text-slate-400 font-mono">
-            Model: {metadata.modelName} ({metadata.modelVersion})
+          <span className="text-xs text-muted-2 font-mono tabular-nums">
+            {metadata.modelName} ({metadata.modelVersion})
           </span>
         </div>
-        <div className="flex items-center space-x-1.5 font-mono text-[10px] bg-slate-800/80 px-2 py-0.5 rounded border border-geo-border text-teal-300">
+        <div className="flex items-center space-x-1.5 font-mono tabular-nums text-xs bg-paper-3 px-2.5 py-1 rounded-control border border-rule text-muted">
           <span>Coverage: {metadata.inputDataCoveragePct}%</span>
         </div>
       </div>
 
-      {/* Interactive Forecast Horizon Chart */}
-      <div className="relative bg-slate-900/90 border border-geo-border rounded-lg p-2 overflow-hidden shadow-inner">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible cursor-crosshair">
+      {/* Interactive Forecast Horizon Chart (Telemetry Moment) */}
+      <div className="relative bg-paper-3 rounded-card border border-rule p-3 overflow-hidden">
+        <svg
+          role="img"
+          aria-label="Forecast horizon with confidence intervals"
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-auto overflow-visible cursor-crosshair"
+        >
           {/* Vertical Split Line: Observed History vs Forecast Horizon */}
           <line
             x1={splitX}
             y1={padTop}
             x2={splitX}
             y2={height - padBottom}
-            stroke="#f59e0b"
-            strokeWidth="1.5"
-            strokeDasharray="4,4"
+            stroke="var(--color-telemetry-amber)"
+            strokeWidth="1"
+            strokeDasharray="3,3"
+            strokeOpacity="0.6"
           />
           <text
             x={splitX + 6}
             y={padTop + 12}
-            fill="#f59e0b"
+            fill="var(--color-telemetry-amber)"
             fontSize="9"
-            fontFamily="monospace"
-            fontWeight="bold"
+            fontFamily="var(--font-outlier)"
           >
-            FORECAST HORIZON →
+            Horizon projection →
           </text>
 
           {/* Grid lines */}
@@ -181,15 +175,15 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
                   y1={y}
                   x2={width - padRight}
                   y2={y}
-                  stroke="#1e293b"
-                  strokeDasharray="3,3"
+                  stroke="var(--color-rule)"
+                  strokeDasharray="2,2"
                 />
                 <text
                   x={padLeft - 8}
                   y={y + 3}
-                  fill="#64748b"
+                  fill="var(--color-muted-2)"
                   fontSize="9"
-                  fontFamily="monospace"
+                  fontFamily="var(--font-outlier)"
                   textAnchor="end"
                 >
                   {val}
@@ -206,9 +200,9 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
                 key={i}
                 x={getX(i)}
                 y={height - 8}
-                fill={p.isHistorical ? '#64748b' : '#f59e0b'}
+                fill={p.isHistorical ? 'var(--color-muted-2)' : 'var(--color-telemetry-amber)'}
                 fontSize="9"
-                fontFamily="monospace"
+                fontFamily="var(--font-outlier)"
                 textAnchor="middle"
               >
                 {p.date.slice(2, 7)}
@@ -216,29 +210,38 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
             );
           })}
 
-          {/* Shaded 95% Confidence Interval Band */}
-          <polygon points={band95Path} fill="rgba(245, 158, 11, 0.15)" stroke="none" />
+          {/* Shaded 95% Confidence Interval Band (Translucent Amber Fill) */}
+          <polygon
+            points={band95Path}
+            fill="var(--color-telemetry-amber)"
+            fillOpacity="0.12"
+            stroke="var(--color-telemetry-amber)"
+            strokeWidth="0.5"
+            strokeOpacity="0.3"
+          />
 
-          {/* Historical Observed Solid Line */}
+          {/* Historical Observed Solid Line (Cyan) */}
           <polyline
             fill="none"
-            stroke="#38bdf8"
+            stroke="var(--color-telemetry-cyan)"
             strokeWidth="2"
             strokeLinejoin="round"
+            strokeLinecap="round"
             points={historyPoints}
           />
 
-          {/* Forecast Horizon Dashed Line (Distinct visual treatment) */}
+          {/* Forecast Horizon Dashed Line (Amber) */}
           <polyline
             fill="none"
-            stroke="#f59e0b"
-            strokeWidth="2.5"
-            strokeDasharray="6,4"
+            stroke="var(--color-telemetry-amber)"
+            strokeWidth="2"
+            strokeDasharray="4,3"
             strokeLinejoin="round"
+            strokeLinecap="round"
             points={forecastPoints}
           />
 
-          {/* Forecast Points */}
+          {/* Forecast Horizon Points */}
           {forecast.map((f, fIdx) => {
             const idx = splitIndex + fIdx + 1;
             const cx = getX(idx);
@@ -250,39 +253,23 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
                 className="cursor-pointer"
                 onMouseEnter={() => setHoveredForecast(f)}
               >
-                {/* Upper/Lower error bar lines */}
                 <line
                   x1={cx}
                   y1={getY(f.upperBound95)}
                   x2={cx}
                   y2={getY(f.lowerBound95)}
-                  stroke="rgba(245, 158, 11, 0.5)"
-                  strokeWidth="1.5"
-                />
-                <line
-                  x1={cx - 3}
-                  y1={getY(f.upperBound95)}
-                  x2={cx + 3}
-                  y2={getY(f.upperBound95)}
-                  stroke="rgba(245, 158, 11, 0.5)"
-                  strokeWidth="1.5"
-                />
-                <line
-                  x1={cx - 3}
-                  y1={getY(f.lowerBound95)}
-                  x2={cx + 3}
-                  y2={getY(f.lowerBound95)}
-                  stroke="rgba(245, 158, 11, 0.5)"
-                  strokeWidth="1.5"
+                  stroke="var(--color-telemetry-amber)"
+                  strokeWidth="1"
+                  strokeOpacity="0.4"
                 />
 
                 <circle
                   cx={cx}
                   cy={cy}
-                  r="4"
-                  fill="#f59e0b"
-                  stroke="#0b0f19"
-                  strokeWidth="1.5"
+                  r="3.5"
+                  fill="var(--color-telemetry-amber)"
+                  stroke="var(--color-paper-3)"
+                  strokeWidth="1.25"
                 />
               </g>
             );
@@ -291,24 +278,26 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
 
         {/* Hover Tooltip for Forecast Point */}
         {hoveredForecast && (
-          <div className="absolute top-2 right-2 bg-slate-950/95 border border-amber-500/60 p-2 rounded-md shadow-2xl text-[10px] font-mono space-y-1 backdrop-blur-sm pointer-events-none">
-            <div className="flex items-center justify-between text-amber-300 font-bold border-b border-slate-800 pb-1">
-              <span>Projection: {hoveredForecast.timestamp.slice(0, 10)}</span>
-              <span className="text-slate-400 font-normal">Model Estimate</span>
+          <div className="absolute top-3 right-3 bg-paper-2 rounded-control border border-rule-2 p-2.5 text-xs space-y-1 pointer-events-none shadow-md">
+            <div className="flex items-center justify-between text-ink font-medium border-b border-rule pb-1 gap-3">
+              <span className="font-mono tabular-nums">{hoveredForecast.timestamp.slice(0, 10)}</span>
+              <span className="text-muted-2 font-mono">Statistical projection</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Mean Prediction:</span>
-              <span className="text-amber-400 font-bold">{hoveredForecast.predictedValue}</span>
+            <div className="flex justify-between gap-3 text-xs">
+              <span className="text-muted">Prediction:</span>
+              <span className="text-telemetry-amber font-mono tabular-nums font-medium">
+                {hoveredForecast.predictedValue}
+              </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">80% CI Range:</span>
-              <span className="text-slate-200">
+            <div className="flex justify-between gap-3 text-xs">
+              <span className="text-muted">80% CI:</span>
+              <span className="text-ink font-mono tabular-nums">
                 [{hoveredForecast.lowerBound} to {hoveredForecast.upperBound}]
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">95% CI Range:</span>
-              <span className="text-slate-200">
+            <div className="flex justify-between gap-3 text-xs">
+              <span className="text-muted">95% CI:</span>
+              <span className="text-ink font-mono tabular-nums">
                 [{hoveredForecast.lowerBound95} to {hoveredForecast.upperBound95}]
               </span>
             </div>
@@ -316,61 +305,61 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
         )}
 
         {/* Chart Legend */}
-        <div className="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 px-1">
-          <div className="flex items-center space-x-3">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-0.5 bg-[#38bdf8] inline-block" />
-              Observed Past
+        <div className="mt-3 pt-2 border-t border-rule flex items-center justify-between text-xs text-muted-2 px-1">
+          <div className="flex items-center space-x-4">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-0.5 bg-telemetry-cyan inline-block rounded-sm" />
+              <span>Observed past</span>
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-0.5 border-t-2 border-dashed border-[#f59e0b] inline-block" />
-              Model Forecast
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-0.5 border-t border-dashed border-telemetry-amber inline-block" />
+              <span>Model horizon</span>
             </span>
-            <span className="flex items-center gap-1">
-              <span className="w-3 h-2 bg-amber-500/20 inline-block border border-amber-500/40 rounded-sm" />
-              95% Uncertainty Band
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-2 bg-telemetry-amber/20 inline-block border border-telemetry-amber/40 rounded-sm" />
+              <span>95% uncertainty band</span>
             </span>
           </div>
         </div>
       </div>
 
       {/* Model Provenance & Evaluation Metrics Card */}
-      <div className="p-3 rounded-lg bg-slate-900/80 border border-geo-border space-y-2 text-xs">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
-          <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-            <Cpu className="h-3.5 w-3.5 text-teal-400" />
-            Model Provenance & Holdout Calibration
+      <div className="p-3 bg-paper-2 rounded-card border border-rule space-y-2.5 text-xs">
+        <div className="flex items-center justify-between border-b border-rule pb-1.5">
+          <span className="font-medium text-ink flex items-center gap-1.5">
+            <Cpu className="h-3.5 w-3.5 text-ink-2" aria-hidden="true" />
+            <span>Model provenance and validation</span>
           </span>
-          <span className="font-mono text-[10px] text-teal-400 bg-teal-950 px-1.5 py-0.5 rounded">
+          <span className="font-mono tabular-nums text-xs text-muted bg-paper-3 px-2 py-0.5 rounded-sm border border-rule">
             {metadata.algorithmFamily}
           </span>
         </div>
 
         {/* Holdout Validation Scores */}
-        <div className="grid grid-cols-3 gap-2 font-mono text-[10px]">
-          <div className="bg-slate-800/60 p-1.5 rounded">
-            <span className="text-slate-400 block text-[9px]">RMSE (Holdout)</span>
-            <span className="text-emerald-400 font-bold">{metadata.evaluationMetrics.rmse}</span>
+        <div className="grid grid-cols-3 gap-2 font-mono tabular-nums text-xs">
+          <div className="bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 block text-xs font-sans">RMSE</span>
+            <span className="text-ink font-medium">{metadata.evaluationMetrics.rmse}</span>
           </div>
-          <div className="bg-slate-800/60 p-1.5 rounded">
-            <span className="text-slate-400 block text-[9px]">MAE</span>
-            <span className="text-slate-200 font-bold">{metadata.evaluationMetrics.mae}</span>
+          <div className="bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 block text-xs font-sans">MAE</span>
+            <span className="text-ink font-medium">{metadata.evaluationMetrics.mae}</span>
           </div>
-          <div className="bg-slate-800/60 p-1.5 rounded">
-            <span className="text-slate-400 block text-[9px]">R² Coefficient</span>
-            <span className="text-teal-300 font-bold">{metadata.evaluationMetrics.r2}</span>
+          <div className="bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 block text-xs font-sans">R² score</span>
+            <span className="text-ink font-medium">{metadata.evaluationMetrics.r2}</span>
           </div>
         </div>
 
         {/* Uncertainty Methodology */}
-        <div className="text-[10px] text-slate-400 space-y-1">
+        <div className="text-xs text-muted space-y-1">
           <div>
-            <span className="text-slate-300 font-semibold">Uncertainty Estimation: </span>
+            <span className="text-ink">Methodology: </span>
             <span>{metadata.uncertaintyMethod}</span>
           </div>
           <div>
-            <span className="text-slate-300 font-semibold">Training Chronology: </span>
-            <span className="font-mono">
+            <span className="text-ink">Training window: </span>
+            <span className="font-mono tabular-nums text-muted">
               {metadata.trainingWindow.start.slice(0, 10)} to {metadata.trainingWindow.end.slice(0, 10)}
             </span>
           </div>
@@ -378,10 +367,10 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
 
         {/* Limitations List */}
         <div>
-          <span className="text-[10px] font-semibold text-slate-300 block mb-1">
-            Documented Model Limitations:
+          <span className="text-xs font-medium text-ink block mb-1">
+            Documented model limitations:
           </span>
-          <ul className="space-y-1 list-disc list-inside text-[10px] text-slate-400">
+          <ul className="space-y-1 list-disc list-inside text-xs text-muted-2">
             {metadata.limitations.map((lim, lIdx) => (
               <li key={lIdx} className="leading-tight">
                 {lim}
@@ -393,4 +382,3 @@ export const ForecastPanel: React.FC<ForecastPanelProps> = ({
     </div>
   );
 };
-

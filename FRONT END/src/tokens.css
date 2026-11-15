@@ -1,0 +1,43 @@
+:root {
+  /* Unslop Graphite Dark Ramp for Geospatial Telemetry Console
+   * Deep graphite surfaces, off-white ink, hairlines at 8% opacity.
+   * Color is strictly concentrated in the telemetry chart moment. */
+  --color-paper-deep: #0f0f10;
+  --color-paper: #141415;
+  --color-paper-2: #19191b;
+  --color-paper-3: #202023;
+  --color-paper-surface: #28282c;
+  --color-paper-surface-hover: #323237;
+
+  --color-ink: #ededed;
+  --color-ink-2: #a1a1a6;
+  --color-muted: #85858b;
+  --color-muted-2: #636369;
+
+  --color-rule: rgba(237, 237, 237, 0.08);
+  --color-rule-2: rgba(237, 237, 237, 0.14);
+
+  /* Telemetry Focal Moment: Historical Observations & Predictive Horizon */
+  --color-telemetry-cyan: #38bdf8;
+  --color-telemetry-amber: #f59e0b;
+  --color-accent: #38bdf8;
+  --color-accent-hover: #0284c7;
+  --color-accent-ink: #0f0f10;
+  --color-accent-2: #f59e0b;
+  --color-accent-secondary: #f59e0b;
+
+  --color-focus: rgba(237, 237, 237, 0.35);
+  --color-error: #e5484d;
+  --color-warning: #f59e0b;
+  --color-success: #4cc38a;
+
+  --font-headline: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-outlier: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-panel: 12px;
+  --radius-card: 10px;
+  --radius-control: 8px;
+  --radius-sm: 4px;
+}

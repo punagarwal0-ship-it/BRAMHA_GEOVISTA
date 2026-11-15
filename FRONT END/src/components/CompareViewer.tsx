@@ -1,14 +1,7 @@
 import React from 'react';
 import {
   SplitSquareVertical,
-  Calendar,
-  Cloud,
-  CheckCircle,
-  TrendingDown,
-  TrendingUp,
-  RotateCcw,
-  Sparkles,
-  Info
+  TrendingUp
 } from 'lucide-react';
 import { ObservationScene } from '../types/api';
 
@@ -38,36 +31,36 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
 
   return (
     <div className="space-y-4 text-xs select-none">
-      {/* Enable Split Mode Button */}
-      <div className="p-3 rounded-lg bg-slate-900/80 border border-geo-border flex items-center justify-between">
+      {/* Enable Split Mode Button (34px Row) */}
+      <div className="p-3 bg-paper-2 rounded-card border border-rule flex items-center justify-between">
         <div>
-          <span className="font-semibold text-slate-200 block text-xs">
-            Interactive Split-Swipe Map
+          <span className="font-medium text-ink block text-xs">
+            Split-swipe map view
           </span>
-          <span className="text-[10px] text-slate-400">
+          <span className="text-xs text-muted-2">
             Compare two satellite observations across time
           </span>
         </div>
         <button
           onClick={() => setCompareMode(!compareMode)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1.5 transition-all ${
+          className={`h-[34px] px-3 text-xs font-medium rounded-control flex items-center space-x-2 transition-colors ${
             compareMode
-              ? 'bg-teal-500 text-slate-900 shadow-lg shadow-teal-500/20'
-              : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-geo-border'
+              ? 'bg-ink text-paper shadow-sm'
+              : 'bg-paper-3 text-muted hover:bg-paper-surface hover:text-ink border border-rule'
           }`}
         >
-          <SplitSquareVertical className="h-3.5 w-3.5" />
-          <span>{compareMode ? 'Disable Swipe' : 'Enable Swipe'}</span>
+          <SplitSquareVertical className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{compareMode ? 'Disable swipe' : 'Enable swipe'}</span>
         </button>
       </div>
 
       {/* Date Pickers for Scene A and Scene B */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {/* Date A Selection */}
-        <div className="p-2.5 rounded-lg bg-slate-900/60 border border-teal-500/40 space-y-2">
-          <div className="flex items-center justify-between text-teal-300 font-semibold text-[11px]">
-            <span>Baseline (Date A)</span>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-teal-950 text-teal-300">
+        <div className="p-3 bg-paper-3 rounded-card border border-rule space-y-2">
+          <div className="flex items-center justify-between text-ink font-medium text-xs">
+            <span>Baseline (date A)</span>
+            <span className="font-mono text-xs px-1.5 py-0.5 rounded-sm bg-paper border border-rule text-muted">
               Left
             </span>
           </div>
@@ -75,7 +68,7 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
             value={sceneA ? sceneA.acquiredAt.slice(0, 10) : ''}
             onChange={(e) => setCompareDateA(e.target.value)}
             disabled={scenes.length === 0}
-            className="w-full bg-slate-950 border border-geo-border text-slate-200 text-xs rounded p-1.5 outline-none font-mono"
+            className="w-full h-[34px] bg-paper border border-rule rounded-control text-ink text-xs px-2 outline-none font-mono tabular-nums"
           >
             {scenes.map((s) => (
               <option key={s.id} value={s.acquiredAt.slice(0, 10)}>
@@ -84,19 +77,19 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
             ))}
           </select>
           {sceneA && (
-            <div className="text-[10px] font-mono text-slate-400 space-y-0.5 bg-slate-950/40 p-1.5 rounded">
-              <div>Sensor: {sceneA.collection}</div>
-              <div>Cloud: {sceneA.cloudCoverPct}%</div>
-              <div>Quality: {sceneA.qualityFlag}</div>
+            <div className="text-xs text-muted-2 space-y-0.5 bg-paper p-2 rounded-control border border-rule font-mono tabular-nums">
+              <div>Sensor: <span className="text-ink font-sans">{sceneA.collection}</span></div>
+              <div>Cloud: <span className="text-ink">{sceneA.cloudCoverPct}%</span></div>
+              <div>Quality: <span className="text-muted">{sceneA.qualityFlag}</span></div>
             </div>
           )}
         </div>
 
         {/* Date B Selection */}
-        <div className="p-2.5 rounded-lg bg-slate-900/60 border border-cyan-500/40 space-y-2">
-          <div className="flex items-center justify-between text-cyan-300 font-semibold text-[11px]">
-            <span>Comparison (Date B)</span>
-            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300">
+        <div className="p-3 bg-paper-3 rounded-card border border-rule space-y-2">
+          <div className="flex items-center justify-between text-ink font-medium text-xs">
+            <span>Comparison (date B)</span>
+            <span className="font-mono text-xs px-1.5 py-0.5 rounded-sm bg-paper border border-rule text-muted">
               Right
             </span>
           </div>
@@ -104,7 +97,7 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
             value={sceneB ? sceneB.acquiredAt.slice(0, 10) : ''}
             onChange={(e) => setCompareDateB(e.target.value)}
             disabled={scenes.length === 0}
-            className="w-full bg-slate-950 border border-geo-border text-slate-200 text-xs rounded p-1.5 outline-none font-mono"
+            className="w-full h-[34px] bg-paper border border-rule rounded-control text-ink text-xs px-2 outline-none font-mono tabular-nums"
           >
             {scenes.map((s) => (
               <option key={s.id} value={s.acquiredAt.slice(0, 10)}>
@@ -113,25 +106,25 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
             ))}
           </select>
           {sceneB && (
-            <div className="text-[10px] font-mono text-slate-400 space-y-0.5 bg-slate-950/40 p-1.5 rounded">
-              <div>Sensor: {sceneB.collection}</div>
-              <div>Cloud: {sceneB.cloudCoverPct}%</div>
-              <div>Quality: {sceneB.qualityFlag}</div>
+            <div className="text-xs text-muted-2 space-y-0.5 bg-paper p-2 rounded-control border border-rule font-mono tabular-nums">
+              <div>Sensor: <span className="text-ink font-sans">{sceneB.collection}</span></div>
+              <div>Cloud: <span className="text-ink">{sceneB.cloudCoverPct}%</span></div>
+              <div>Quality: <span className="text-muted">{sceneB.qualityFlag}</span></div>
             </div>
           )}
         </div>
       </div>
 
       {/* Temporal Delta Card */}
-      <div className="p-3 rounded-lg bg-slate-900/90 border border-geo-border space-y-2">
-        <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wider block">
-          Observation Difference Summary
+      <div className="p-3 bg-paper-2 rounded-card border border-rule space-y-2.5">
+        <span className="text-xs font-medium text-muted block">
+          Observation difference summary
         </span>
 
-        <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-          <div className="bg-slate-800/60 p-2 rounded">
-            <span className="text-slate-400 text-[10px] block">Temporal Separation</span>
-            <span className="text-slate-100 font-semibold">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 text-xs block font-sans">Temporal separation</span>
+            <span className="text-ink font-mono tabular-nums font-medium">
               {sceneA && sceneB
                 ? `${Math.abs(
                     Math.round(
@@ -143,20 +136,19 @@ export const CompareViewer: React.FC<CompareViewerProps> = ({
             </span>
           </div>
 
-          <div className="bg-slate-800/60 p-2 rounded">
-            <span className="text-slate-400 text-[10px] block">Index Delta ({indicator.toUpperCase()})</span>
-            <div className="flex items-center space-x-1 font-semibold text-emerald-400">
-              <TrendingUp className="h-3 w-3" />
+          <div className="bg-paper-3 p-2 rounded-control border border-rule">
+            <span className="text-muted-2 text-xs block font-sans">Index delta ({indicator})</span>
+            <div className="flex items-center space-x-1 font-mono tabular-nums font-medium text-success">
+              <TrendingUp className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>+0.082 Δ</span>
             </div>
           </div>
         </div>
 
-        <p className="text-[10px] text-slate-400 leading-relaxed">
-          Drag the cyan handle on the map canvas to swipe between baseline and post-change rasters.
+        <p className="text-xs text-muted-2 leading-relaxed">
+          Drag the center handle on the map canvas to swipe between baseline and post-change rasters.
         </p>
       </div>
     </div>
   );
 };
-
