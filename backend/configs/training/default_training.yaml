@@ -1,0 +1,242 @@
+# ==============================================================================
+# Default Training Configuration — GEOVISTA Intelligence ML Backend
+# Covers all 6 geospatial ML tasks.
+# batch_size: auto → resolved at runtime via hardware detection
+# ==============================================================================
+
+global_defaults:
+  seed: 42
+  checkpoint_every_n_epochs: 5
+  early_stopping_patience: 10
+  gradient_clip_norm: 1.0
+  mixed_precision: auto          # resolved at runtime
+  compile_model: false           # torch.compile (requires PyTorch 2.x)
+  log_every_n_steps: 50
+
+# ------------------------------------------------------------------------------
+# Task 1: Land Use / Land Cover (LULC) Classification
+# Multi-class semantic segmentation
+# ------------------------------------------------------------------------------
+lulc_classification:
+  model_type: unet_resnet50      # UNet with ResNet-50 encoder (pretrained ImageNet)
+  encoder_weights: imagenet
+  num_classes: 10                # Adjust per project
+  in_channels: 12                # e.g. 12 optical + vegetation indices
+
+  training:
+    epochs: 60
+    batch_size: auto
+    learning_rate: 1.0e-4
+    weight_decay: 1.0e-4
+    optimizer: adamw
+    scheduler:
+      type: cosine_annealing_warm_restarts
+      T_0: 20
+      T_mult: 2
+      eta_min: 1.0e-6
+    early_stopping_patience: 12
+    checkpoint_every_n_epochs: 5
+    loss:
+      type: combined
+      components:
+        - { name: cross_entropy, weight: 0.5 }
+        - { name: dice, weight: 0.5 }
+    class_weights: auto          # Computed from training set class frequencies
+
+  augmentation:
+    random_horizontal_flip: true
+    random_vertical_flip: true
+    random_rotation_90: true
+    color_jitter: false          # Not applicable to multi-spectral
+
+  evaluation_metrics:
+    - overall_accuracy
+    - mean_iou
+    - per_class_iou
+    - kappa_coefficient
+    - f1_score_macro
+
+# ------------------------------------------------------------------------------
+# Task 2: Vegetation Health Monitoring
+# Multi-output regression (NDVI, EVI, LAI, chlorophyll)
+# ------------------------------------------------------------------------------
+vegetation_health:
+  model_type: temporal_cnn_lstm  # 1D CNN + LSTM for time-series regression
+  num_outputs: 4                 # NDVI, EVI, LAI, Chl-a
+  sequence_length: 24            # 24 time steps (e.g. 16-day MODIS composites over 1 year)
+  hidden_dim: 256
+  num_lstm_layers: 2
+
+  training:
+    epochs: 80
+    batch_size: auto
+    learning_rate: 5.0e-4
+    weight_decay: 1.0e-5
+    optimizer: adam
+    scheduler:
+      type: reduce_on_plateau
+      patience: 8
+      factor: 0.5
+      min_lr: 1.0e-7
+    early_stopping_patience: 15
+    checkpoint_every_n_epochs: 10
+    loss:
+      type: huber               # Robust to outliers from cloud contamination
+      delta: 0.5
+
+  evaluation_metrics:
+    - rmse
+    - mae
+    - r2_score
+    - bias
+    - temporal_correlation
+
+# ------------------------------------------------------------------------------
+# Task 3: Flood Mapping / Water Body Detection
+# Binary segmentation (flooded / non-flooded)
+# SAR-primary, optical-auxiliary
+# ------------------------------------------------------------------------------
+flood_mapping:
+  model_type: unet_efficientnet_b4
+  encoder_weights: imagenet
+  num_classes: 2                 # Binary: water / non-water
+  in_channels: 4                 # VV, VH, ratio VV/VH, optical water index
+
+  training:
+    epochs: 50
+    batch_size: auto
+    learning_rate: 2.0e-4
+    weight_decay: 1.0e-4
+    optimizer: adamw
+    scheduler:
+      type: one_cycle_lr
+      max_lr: 1.0e-3
+      pct_start: 0.3
+    early_stopping_patience: 10
+    checkpoint_every_n_epochs: 5
+    loss:
+      type: combined
+      components:
+        - { name: focal, weight: 0.6, gamma: 2.0, alpha: 0.75 }
+        - { name: dice,  weight: 0.4 }
+
+  evaluation_metrics:
+    - iou
+    - f1_score
+    - precision
+    - recall
+    - auc_roc
+    - critical_success_index   # CSI / Threat Score for flood events
+
+# ------------------------------------------------------------------------------
+# Task 4: SAR-based Change Detection
+# Multi-temporal pair binary/multi-class change map
+# ------------------------------------------------------------------------------
+sar_change_detection:
+  model_type: siamese_unet       # Siamese U-Net for bitemporal comparison
+  num_classes: 2                 # Changed / unchanged (or multi-class)
+  in_channels_per_image: 2       # VV + VH per date
+  fusion_strategy: difference_concat  # Concatenate absolute difference + each image
+
+  training:
+    epochs: 70
+    batch_size: auto
+    learning_rate: 1.0e-4
+    weight_decay: 5.0e-5
+    optimizer: adamw
+    scheduler:
+      type: cosine_annealing
+      T_max: 70
+      eta_min: 1.0e-7
+    early_stopping_patience: 15
+    checkpoint_every_n_epochs: 5
+    loss:
+      type: combined
+      components:
+        - { name: binary_cross_entropy, weight: 0.4 }
+        - { name: dice,                 weight: 0.4 }
+        - { name: contrastive,          weight: 0.2, margin: 2.0 }
+
+  evaluation_metrics:
+    - overall_accuracy
+    - kappa_coefficient
+    - f1_score
+    - precision
+    - recall
+    - change_detection_rate
+
+# ------------------------------------------------------------------------------
+# Task 5: Wildfire / Burn Area Mapping
+# SAR + optical fusion, semantic segmentation
+# ------------------------------------------------------------------------------
+wildfire_mapping:
+  model_type: fpn_resnet50       # Feature Pyramid Network
+  encoder_weights: imagenet
+  num_classes: 3                 # Unburned / active fire / burned scar
+  in_channels: 8                 # Optical: B4, B8A, B11, B12 + SAR: VV, VH + NBR, dNBR
+
+  training:
+    epochs: 60
+    batch_size: auto
+    learning_rate: 1.0e-4
+    weight_decay: 1.0e-4
+    optimizer: adamw
+    scheduler:
+      type: cosine_annealing_warm_restarts
+      T_0: 15
+      T_mult: 2
+      eta_min: 1.0e-7
+    early_stopping_patience: 12
+    checkpoint_every_n_epochs: 5
+    loss:
+      type: combined
+      components:
+        - { name: focal, weight: 0.5, gamma: 3.0 }
+        - { name: dice,  weight: 0.5 }
+
+  evaluation_metrics:
+    - overall_accuracy
+    - mean_iou
+    - f1_score_macro
+    - burned_area_accuracy   # Accuracy specifically on burned class
+    - auc_roc
+
+# ------------------------------------------------------------------------------
+# Task 6: Agricultural Field Delineation & Crop Type Classification
+# Instance / semantic segmentation + classification
+# Multi-temporal time series
+# ------------------------------------------------------------------------------
+crop_mapping:
+  model_type: temporal_unet_transformer  # U-Net with temporal attention
+  encoder_weights: imagenet
+  num_crop_classes: 15           # Adjust per region
+  sequence_length: 36            # Monthly composites × 3 years or 10-day
+  in_channels_per_step: 10       # Optical bands per time step
+
+  training:
+    epochs: 90
+    batch_size: auto
+    learning_rate: 5.0e-5
+    weight_decay: 1.0e-4
+    optimizer: adamw
+    scheduler:
+      type: warmup_cosine
+      warmup_epochs: 5
+      max_epochs: 90
+      min_lr: 1.0e-7
+    early_stopping_patience: 15
+    checkpoint_every_n_epochs: 10
+    loss:
+      type: combined
+      components:
+        - { name: cross_entropy, weight: 0.5 }
+        - { name: temporal_consistency, weight: 0.3 }  # Penalise abrupt temporal changes
+        - { name: dice, weight: 0.2 }
+
+  evaluation_metrics:
+    - overall_accuracy
+    - mean_iou
+    - per_class_iou
+    - kappa_coefficient
+    - f1_score_macro
+    - field_boundary_f1

@@ -1,0 +1,354 @@
+# ==============================================================================
+# NASA Earthdata Data Source Configurations
+# GEOVISTA Intelligence ML Backend
+#
+# References:
+#   MODIS   : https://lpdaac.usgs.gov/products/mod13q1v061/
+#   HLS     : https://lpdaac.usgs.gov/products/hlss30v002/
+#   Landsat : https://www.usgs.gov/centers/eros/science/usgs-eros-archive-landsat-collection-2
+#   S2 STAC : https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# MODIS MOD13Q1 v061 — Vegetation Indices (250 m, 16-day composite)
+# ------------------------------------------------------------------------------
+modis_mod13q1:
+  short_name: MOD13Q1
+  version: "061"
+  provider: LPDAAC_ECS
+  temporal_resolution_days: 16
+  native_resolution_m: 250
+  collection_concept_id: C2343992088-LPCLOUD   # URS CMR concept ID
+  download_base_url: "https://e4ftl01.cr.usgs.gov/MOLT/MOD13Q1.061"
+
+  # HDF-EOS subdataset names exactly as reported by gdalinfo / rasterio
+  subdatasets:
+    ndvi:
+      hdf_name: "250m 16 days NDVI"
+      long_name: "Normalized Difference Vegetation Index"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672          # 0x9000
+      valid_range: [-2000, 10000]
+      units: "NDVI (dimensionless × 10000)"
+
+    evi:
+      hdf_name: "250m 16 days EVI"
+      long_name: "Enhanced Vegetation Index"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [-2000, 10000]
+      units: "EVI (dimensionless × 10000)"
+
+    red:
+      hdf_name: "250m 16 days red reflectance"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [0, 10000]
+
+    nir:
+      hdf_name: "250m 16 days NIR reflectance"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [0, 10000]
+
+    blue:
+      hdf_name: "250m 16 days blue reflectance"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [0, 10000]
+
+    mir:
+      hdf_name: "250m 16 days MIR reflectance"
+      dtype: int16
+      scale_factor: 0.0001
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [0, 10000]
+
+    view_zenith:
+      hdf_name: "250m 16 days view zenith angle"
+      dtype: int16
+      scale_factor: 0.01
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [-9000, 9000]
+      units: degrees
+
+    sun_zenith:
+      hdf_name: "250m 16 days sun zenith angle"
+      dtype: int16
+      scale_factor: 0.01
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [-9000, 9000]
+      units: degrees
+
+    relative_azimuth:
+      hdf_name: "250m 16 days relative azimuth angle"
+      dtype: int16
+      scale_factor: 0.01
+      add_offset: 0.0
+      fill_value: -28672
+      valid_range: [-3600, 3600]
+      units: degrees
+
+    pixel_reliability:
+      hdf_name: "250m 16 days pixel reliability"
+      dtype: int8
+      scale_factor: 1.0
+      add_offset: 0.0
+      fill_value: -1
+      valid_range: [0, 3]
+      # 0=Good data, 1=Marginal data, 2=Snow/ice, 3=Cloudy
+
+    vi_quality:
+      hdf_name: "250m 16 days VI Quality"
+      dtype: uint16
+      scale_factor: 1.0
+      add_offset: 0.0
+      fill_value: 65535
+      valid_range: [0, 65534]
+      # Bit-packed QA field — see bit_meanings below
+
+  # QA bit-field meanings for VI Quality (uint16)
+  qa_bits:
+    modland_qa:        # bits 0–1
+      offset: 0
+      mask: 0x0003
+      values:
+        0: "VI produced with good quality"
+        1: "VI produced, but check other QA"
+        2: "Pixel produced, but most probably cloudy"
+        3: "Pixel not produced due to other reasons"
+    vi_usefulness:     # bits 2–5
+      offset: 2
+      mask: 0x003C
+      values:
+        0:  "Highest quality"
+        1:  "Lower quality"
+        2:  "Decreasing quality"
+        4:  "Decreasing quality"
+        8:  "Decreasing quality"
+        9:  "Decreasing quality"
+        10: "Decreasing quality"
+        12: "Lowest quality"
+        13: "Quality so low not useful"
+        14: "L1B data faulty"
+        15: "Not useful for any reason (Fill)"
+    aerosol_quantity:  # bits 6–7
+      offset: 6
+      mask: 0x00C0
+      values:
+        0: "Climatology"
+        1: "Low"
+        2: "Intermediate"
+        3: "High"
+    adjacent_cloud_detected:   # bit 8
+      offset: 8
+      mask: 0x0100
+      values: { 0: "No", 1: "Yes" }
+    atmosphere_brdf_correction: # bit 9
+      offset: 9
+      mask: 0x0200
+      values: { 0: "No", 1: "Yes" }
+    mixed_clouds:              # bit 10
+      offset: 10
+      mask: 0x0400
+      values: { 0: "No", 1: "Yes" }
+    land_water_mask:           # bits 11–13
+      offset: 11
+      mask: 0x3800
+      values:
+        0: "Shallow ocean"
+        1: "Land (Nothing else but land)"
+        2: "Ocean coastlines and lake shorelines"
+        3: "Shallow inland water"
+        4: "Ephemeral water"
+        5: "Deep inland water"
+        6: "Moderate or continental ocean"
+        7: "Deep ocean"
+    snow_ice:                  # bit 14
+      offset: 14
+      mask: 0x4000
+      values: { 0: "No", 1: "Yes" }
+    shadow:                    # bit 15
+      offset: 15
+      mask: 0x8000
+      values: { 0: "No", 1: "Yes" }
+
+# ------------------------------------------------------------------------------
+# Sentinel-2 L2A — STAC (Element84 / AWS)
+# ------------------------------------------------------------------------------
+sentinel2_l2a:
+  short_name: sentinel-2-l2a
+  stac_endpoint: "https://earth-search.aws.element84.com/v1"
+  collection: sentinel-2-l2a
+  level: L2A                     # Bottom-of-atmosphere reflectance
+  processing_baseline_min: "04.00"
+
+  native_resolution_m:
+    B01: 60
+    B02: 10
+    B03: 10
+    B04: 10
+    B05: 20
+    B06: 20
+    B07: 20
+    B08: 10
+    B8A: 20
+    B09: 60
+    B11: 20
+    B12: 20
+    SCL: 20     # Scene Classification Layer
+    AOT: 10     # Aerosol Optical Thickness
+    WVP: 10     # Water Vapour
+
+  scale_factor: 0.0001           # Stored as uint16; reflectance = DN × 0.0001
+  add_offset: -0.1               # Stored offset for Sentinel-2 DN → reflectance
+  fill_value: 0
+  valid_range: [1, 65534]        # DN range (0 = no data, 65535 = saturated)
+
+  # Scene Classification Layer (SCL) values
+  scl_classes:
+    0:  NO_DATA
+    1:  SATURATED_OR_DEFECTIVE
+    2:  CAST_SHADOWS
+    3:  CLOUD_SHADOWS
+    4:  VEGETATION
+    5:  NOT_VEGETATED
+    6:  WATER
+    7:  UNCLASSIFIED
+    8:  CLOUD_MEDIUM_PROBABILITY
+    9:  CLOUD_HIGH_PROBABILITY
+    10: THIN_CIRRUS
+    11: SNOW_ICE
+
+  cloud_filter:
+    max_cloud_cover_pct: 20       # Maximum scene cloud cover (metadata)
+    scl_mask_classes: [0, 1, 3, 8, 9, 10, 11]  # Mask these SCL values
+
+  preferred_bands: [B02, B03, B04, B08, B8A, B11, B12]
+
+# ------------------------------------------------------------------------------
+# Landsat 8 / 9 — Collection 2, Level-2 (Surface Reflectance + ST)
+# ------------------------------------------------------------------------------
+landsat_c2_l2:
+  short_name_l8: LANDSAT_OLI_TIRS_C2_L2
+  short_name_l9: LANDSAT_OT_C2_L2
+  provider: USGS_EROS
+  level: Level-2
+  collection: 2
+  native_resolution_m: 30
+  stac_endpoint: "https://landsatlook.usgs.gov/stac-server"
+  collection_id: landsat-c2l2-sr  # STAC collection ID
+
+  bands:
+    # Optical Surface Reflectance (Landsat 8/9 OLI)
+    B1:  { name: Coastal/Aerosol, wavelength_nm: 443,  scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B2:  { name: Blue,            wavelength_nm: 482,  scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B3:  { name: Green,           wavelength_nm: 562,  scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B4:  { name: Red,             wavelength_nm: 655,  scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B5:  { name: NIR,             wavelength_nm: 865,  scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B6:  { name: SWIR1,           wavelength_nm: 1609, scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    B7:  { name: SWIR2,           wavelength_nm: 2201, scale: 0.0000275, offset: -0.2, fill: 0,     valid_range: [7273, 43636] }
+    # Thermal (Landsat 8/9 TIRS) — Surface Temperature
+    B10: { name: TIRS1_ST,        wavelength_um: 10.9, scale: 0.00341802, offset: 149.0, fill: 0,  valid_range: [0, 65535], units: Kelvin }
+
+    # QA bands
+    QA_PIXEL:   { name: QA Pixel,   dtype: uint16, fill: 1 }
+    QA_RADSAT:  { name: QA Radsat,  dtype: uint16, fill: 0 }
+    ST_QA:      { name: ST QA,      dtype: int16,  scale: 0.01, offset: 0, fill: -9999 }
+
+  # QA_PIXEL bit meanings (Collection 2)
+  qa_pixel_bits:
+    fill:               { bit: 0,  description: "Image fill" }
+    dilated_cloud:      { bit: 1,  description: "Dilated cloud" }
+    cirrus:             { bit: 2,  description: "Cirrus" }
+    cloud:              { bit: 3,  description: "Cloud" }
+    cloud_shadow:       { bit: 4,  description: "Cloud shadow" }
+    snow:               { bit: 5,  description: "Snow" }
+    clear:              { bit: 6,  description: "Clear" }
+    water:              { bit: 7,  description: "Water" }
+    cloud_confidence:   { bits: [8, 9],   description: "Cloud confidence" }
+    cloud_shadow_conf:  { bits: [10, 11], description: "Cloud shadow confidence" }
+    snow_ice_conf:      { bits: [12, 13], description: "Snow/ice confidence" }
+    cirrus_conf:        { bits: [14, 15], description: "Cirrus confidence" }
+
+  cloud_filter:
+    max_cloud_cover_pct: 20
+    qa_mask_bits: [1, 2, 3, 4]   # Dilated cloud, cirrus, cloud, cloud shadow
+
+# ------------------------------------------------------------------------------
+# HLS v2.0 — Harmonized Landsat Sentinel-2
+# NASA LP DAAC (Earthdata)
+# ------------------------------------------------------------------------------
+hls_v2:
+  short_name_s30: HLSS30        # Sentinel-2 (30 m)
+  short_name_l30: HLSL30        # Landsat (30 m)
+  version: "002"
+  provider: LPCLOUD
+  native_resolution_m: 30
+  temporal_resolution_days: 2   # Combined revisit with both sensors
+  stac_endpoint: "https://cmr.earthdata.nasa.gov/stac/LPCLOUD"
+  download_base_url: "https://data.lpdaac.earthdatacloud.nasa.gov"
+
+  bands_s30:
+    B01: { name: Coastal/Aerosol, wavelength_nm: 443 }
+    B02: { name: Blue,            wavelength_nm: 490 }
+    B03: { name: Green,           wavelength_nm: 560 }
+    B04: { name: Red,             wavelength_nm: 665 }
+    B05: { name: Red-Edge1,       wavelength_nm: 704 }
+    B06: { name: Red-Edge2,       wavelength_nm: 740 }
+    B07: { name: Red-Edge3,       wavelength_nm: 783 }
+    B08: { name: NIR Broad,       wavelength_nm: 842 }
+    B8A: { name: NIR Narrow,      wavelength_nm: 865 }
+    B09: { name: Water Vapour,    wavelength_nm: 940 }
+    B10: { name: Cirrus,          wavelength_nm: 1375 }
+    B11: { name: SWIR1,           wavelength_nm: 1610 }
+    B12: { name: SWIR2,           wavelength_nm: 2190 }
+    Fmask: { name: Quality mask, dtype: uint8 }
+
+  bands_l30:
+    B01: { name: Coastal/Aerosol, wavelength_nm: 443 }
+    B02: { name: Blue,            wavelength_nm: 482 }
+    B03: { name: Green,           wavelength_nm: 562 }
+    B04: { name: Red,             wavelength_nm: 655 }
+    B05: { name: NIR,             wavelength_nm: 865 }
+    B06: { name: SWIR1,           wavelength_nm: 1608 }
+    B07: { name: SWIR2,           wavelength_nm: 2201 }
+    B09: { name: Cirrus,          wavelength_nm: 1375 }
+    B10: { name: TIRS1,           wavelength_um: 10.9 }
+    B11: { name: TIRS2,           wavelength_um: 12.0 }
+    Fmask: { name: Quality mask, dtype: uint8 }
+
+  # Shared reflectance scaling for all HLS bands (except Fmask & thermal)
+  scale_factor: 0.0001
+  add_offset: 0.0
+  fill_value: -9999
+  valid_range: [-100, 16000]    # pre-scaling DN range
+
+  # Fmask bit definitions
+  fmask_bits:
+    cirrus:        { bit: 0, description: "Cirrus" }
+    cloud:         { bit: 1, description: "Cloud" }
+    adjacent_cloud:{ bit: 2, description: "Adjacent cloud shadow" }
+    cloud_shadow:  { bit: 3, description: "Cloud shadow" }
+    snow_ice:      { bit: 4, description: "Snow/ice" }
+    water:         { bit: 5, description: "Water" }
+    aerosol_level:
+      bits: [6, 7]
+      values: { 0: "Climatology aerosol", 1: "Low aerosol", 2: "Moderate aerosol", 3: "High aerosol" }
+
+  cloud_filter:
+    max_cloud_cover_pct: 20
+    fmask_mask_bits: [1, 2, 3]  # Cloud, adjacent cloud shadow, cloud shadow

@@ -1,0 +1,50 @@
+# ==============================================================================
+# GEOVISTA Intelligence — Ensemble Configuration
+# ==============================================================================
+
+within_task_ensembles:
+  vegetation:
+    enabled: true
+    method: weighted_average
+    candidate_models:
+      - vegetation_lstm
+      - vegetation_tcn
+      - vegetation_rf
+    selection_metric: rmse
+    higher_is_better: false
+    min_improvement_threshold: 0.01   # Must improve RMSE by at least 0.01 to displace best single model
+
+  landcover:
+    enabled: true
+    method: majority_voting
+    candidate_models:
+      - landcover_unet
+      - landcover_rf
+    selection_metric: mean_iou
+    higher_is_better: true
+    min_improvement_threshold: 0.005
+
+  flood:
+    enabled: true
+    method: probability_averaging
+    candidate_models:
+      - flood_unet
+      - flood_sar_threshold
+    selection_metric: f1
+    higher_is_better: true
+
+multi_sensor_fusion:
+  flood_and_coastal:
+    enabled: true
+    strategy: late_fusion
+    cloud_cover_threshold_pct: 40.0
+    optical_weight_clear: 0.50
+    sar_weight_clear: 0.50
+    sar_weight_cloudy: 0.85
+    optical_weight_cloudy: 0.15
+
+cross_task_intelligence:
+  enabled: true
+  generate_structured_report: true
+  prevent_unrelated_averaging: true
+  flag_missing_as_dnav: true

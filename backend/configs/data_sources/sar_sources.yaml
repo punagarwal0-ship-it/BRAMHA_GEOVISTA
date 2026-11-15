@@ -1,0 +1,287 @@
+# ==============================================================================
+# SAR Data Source Configurations
+# GEOVISTA Intelligence ML Backend
+#
+# References:
+#   Sentinel-1  : https://asf.alaska.edu/data-sets/sar-data-sets/sentinel-1/
+#   NISAR       : https://nisar.jpl.nasa.gov/
+#   UAVSAR      : https://uavsar.jpl.nasa.gov/
+#   RCM         : https://www.asc-csa.gc.ca/eng/satellites/radarsat/
+#   RADARSAT-1  : https://www.asc-csa.gc.ca/eng/satellites/radarsat1/
+#   SAOCOM      : https://www.argentina.gob.ar/ciencia/conae/misiones-espaciales/saocom
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Sentinel-1 — ESA / Alaska Satellite Facility (ASF)
+# ------------------------------------------------------------------------------
+sentinel1:
+  agency: ESA
+  archive: ASF             # Primary GEOVISTA download portal
+  asf_platform: Sentinel-1
+  asf_base_url: "https://api.daac.asf.alaska.edu"
+
+  products:
+    grd:
+      type: GRD            # Ground Range Detected
+      level: L1
+      modes: [IW, EW, SM, WV]  # Interferometric Wide, Extra Wide, Strip Map, Wave
+      polarizations:
+        IW: [VV, VV+VH, HH, HH+HV]
+        EW: [VV, VV+VH, HH, HH+HV]
+        SM: [VV, VH, HH, HV, VV+VH, HH+HV]
+        WV: [VV, HH]
+      resolution_m:
+        IW: 10             # After multi-look (native ~20x22 m before)
+        EW: 25
+        SM: 5
+        WV: 5
+      pixel_spacing_m:
+        IW: 10
+        EW: 25
+        SM: 5
+      processing:
+        - radiometric_calibration: sigma0  # sigma_naught (default)
+        - terrain_correction: true         # Range-Doppler TC to WGS-84
+        - speckle_filter: Lee              # Recommended: Lee 5×5
+      output_format: GeoTIFF
+      asset_keys: [VV, VH, HH, HV]        # Available polarisation channels
+
+    slc:
+      type: SLC            # Single Look Complex
+      level: L1
+      modes: [IW, EW, SM, WV]
+      polarizations:
+        IW: [VV+VH, HH+HV, VV, HH]
+      description: >
+        Complex-valued SAR data preserving phase information.
+        Required for InSAR, coherence, and advanced decompositions.
+      use_cases:
+        - interferometry
+        - coherence_change_detection
+        - polarimetric_decomposition
+        - forest_height
+
+  temporal_resolution_days: 12   # Single satellite; ~6 days with both S1A + S1B (when available)
+  swath_width_km: 250            # IW mode
+  incidence_angle_deg: [29, 46]  # IW mode near/far range
+  wavelength_cm: 5.6             # C-band (λ)
+  frequency_ghz: 5.405
+
+  noise_floor_db: -22            # Approximate NESZ for IW mode
+  radiometric_accuracy_db: 1.0
+
+  # Recommended preprocessing pipeline (using ESA SNAP or pyroSAR)
+  preprocessing_steps:
+    - apply_orbit_file
+    - remove_thermal_noise
+    - radiometric_calibration      # → σ⁰
+    - speckle_filtering            # Lee 5×5
+    - range_doppler_terrain_correction
+    - linear_to_db                 # optional: 10 * log10(σ⁰)
+
+# ------------------------------------------------------------------------------
+# NISAR — NASA/ISRO SAR (launch 2024)
+# ------------------------------------------------------------------------------
+nisar:
+  agency: NASA/ISRO
+  archive: ASF
+  wavelengths:
+    L-band:
+      frequency_ghz: 1.257
+      wavelength_cm: 23.8
+    S-band:
+      frequency_ghz: 3.2
+      wavelength_cm: 9.4
+
+  products:
+    l1_rslc:
+      type: RSLC          # Range-focused Single Look Complex
+      level: L1
+      description: "Single Look Complex, range-focused, full polarimetry"
+      polarizations: [HH, HV, VH, VV]  # Quad-pol or compact pol depending on mode
+      format: HDF5
+      file_convention: NISAR_L1_PR_RSLC_{date}_{burst}.h5
+
+    l2_gcov:
+      type: GCOV          # Geocoded Covariance Matrix
+      level: L2
+      description: "Geocoded covariance matrix for polarimetric analysis"
+      resolution_m: [3, 6, 12, 24, 48]  # Multiple resolution products
+      format: HDF5
+      crs: EPSG:4326
+
+    l2_goff:
+      type: GOFF          # Geocoded Dense Offsets
+      level: L2
+      description: "Surface deformation from pixel-tracking"
+      resolution_m: 20
+      format: HDF5
+
+    l2_gunw:
+      type: GUNW          # Geocoded Unwrapped Interferogram
+      level: L2
+      description: "Wrapped and unwrapped interferogram for displacement"
+      format: HDF5
+
+  revisit_days: 12
+  swath_width_km: 240
+  incidence_angle_deg: [25, 45]
+
+# ------------------------------------------------------------------------------
+# UAVSAR — Uninhabited Aerial Vehicle SAR (NASA JPL)
+# ------------------------------------------------------------------------------
+uavsar:
+  agency: NASA/JPL
+  archive: ASF
+  platform: Gulfstream III airborne
+  wavelength_cm: 23.8          # L-band
+  frequency_ghz: 1.257
+
+  product_types:
+    polsar:
+      type: POLSAR
+      description: "Fully polarimetric (PolSAR) data"
+      polarizations: [HH, HV, VH, VV]
+      format: binary (UAVSAR native) + annotation file
+      extensions: [.mlc, .llc, .hgt, .ann]
+      look_angles_deg: [25, 65]
+      resolution_m: [5, 7]     # azimuth × range (approximate 3-look product)
+
+    insar:
+      type: InSAR
+      description: "Interferometric pair for displacement / deformation"
+      format: binary + annotation
+      extensions: [.int, .unw, .cor, .amp]
+      products:
+        - wrapped_interferogram  # .int
+        - unwrapped_phase        # .unw
+        - coherence              # .cor
+        - amplitude              # .amp
+
+    rpi:
+      type: RPI
+      description: "Repeat Pass Interferometry product"
+      format: binary + annotation
+
+  data_access_url: "https://asf.alaska.edu/data-sets/sar-data-sets/uavsar/"
+  note: "UAVSAR data are publicly available via ASF. Requires Earthdata login."
+
+# ------------------------------------------------------------------------------
+# RCM — RADARSAT Constellation Mission (CSA)
+# ------------------------------------------------------------------------------
+rcm:
+  agency: CSA               # Canadian Space Agency
+  archive: MDA/ASF
+  band: C
+  frequency_ghz: 5.405
+  wavelength_cm: 5.6
+  num_satellites: 3
+  revisit_days: 4            # With 3 satellites
+
+  modes:
+    spotlight:
+      resolution_m: 1
+      swath_width_km: 20
+      polarizations: [HH, VV, HH+HV, VV+VH]
+    stripmap:
+      resolution_m: [3, 5, 16, 30, 50, 100]
+      swath_width_km: [20, 30, 125, 125, 125, 500]
+    scan_sar:
+      resolution_m: [50, 100]
+      swath_width_km: [250, 500]
+    compact_polarimetry:
+      description: "Hybrid dual-polarisation (innovative RCM mode)"
+      polarization: CH+CV   # Circular transmit, H and V receive
+      resolution_m: [16, 30, 50]
+    quad_polarimetry:
+      description: "Full PolSAR (HH+HV+VH+VV)"
+      resolution_m: [9, 25]
+
+  product_levels:
+    - GRD            # Level-1 Ground Range Detected
+    - SLC            # Level-1 Single Look Complex
+    - GRC            # Level-1 Geocoded
+
+  applications:
+    - maritime_monitoring
+    - iceberg_tracking
+    - oil_spill_detection
+    - flood_mapping
+    - agriculture_monitoring
+
+# ------------------------------------------------------------------------------
+# RADARSAT-1 — Historical SAR Archive (CSA)
+# ------------------------------------------------------------------------------
+radarsat1:
+  agency: CSA
+  archive: ASF
+  status: retired            # Launched 1995, decommissioned 2013
+  band: C
+  frequency_ghz: 5.3
+  wavelength_cm: 5.6
+
+  modes:
+    fine:       { resolution_m: 10, swath_km: 50,  polarization: HH }
+    standard:   { resolution_m: 30, swath_km: 100, polarization: HH }
+    wide:       { resolution_m: 30, swath_km: 150, polarization: HH }
+    scansar_narrow: { resolution_m: 50,  swath_km: 300, polarization: HH }
+    scansar_wide:   { resolution_m: 100, swath_km: 500, polarization: HH }
+    extended_high:  { resolution_m: 25,  swath_km: 75,  polarization: HH }
+    extended_low:   { resolution_m: 35,  swath_km: 170, polarization: HH }
+
+  note: >
+    RADARSAT-1 data are available via ASF for historical analysis (1996–2013).
+    Single polarisation (HH) only. Useful for long-term change detection.
+
+# ------------------------------------------------------------------------------
+# SAOCOM — Satélite Argentino de Observación Con Microondas (CONAE)
+# ------------------------------------------------------------------------------
+saocom:
+  agency: CONAE              # Argentine Space Agency
+  num_satellites: 2          # SAOCOM-1A + SAOCOM-1B
+  band: L
+  frequency_ghz: 1.274
+  wavelength_cm: 23.5
+
+  modes:
+    stripmap:
+      type: SM
+      resolution_m: [10, 10]  # azimuth × range (single look)
+      swath_km: 350
+      polarizations: [HH, VV, HH+HV, VV+VH]
+    topsar_narrow:
+      type: TN
+      resolution_m: [10, 10]
+      swath_km: 100
+      polarizations: [HH, VV, HH+HV, VV+VH]
+    topsar_wide:
+      type: TW
+      resolution_m: [50, 50]
+      swath_km: 350
+      polarizations: [HH, VV, HH+HV, VV+VH]
+    scan_sar:
+      type: SC
+      resolution_m: [100, 100]
+      swath_km: 350
+      polarizations: [HH, HH+HV]
+
+  product_levels:
+    - L0   # Raw data
+    - L1A  # Focused SLC in slant range geometry
+    - L1B  # Detected / multi-look in slant range
+    - L1C  # Geocoded complex
+    - L1D  # Geocoded detected
+
+  revisit_days: 8            # Per satellite; ~4 days combined
+  incidence_angle_deg: [20, 50]
+
+  applications:
+    - soil_moisture_retrieval
+    - crop_monitoring
+    - emergency_mapping
+    - forest_biomass
+    - wetland_mapping
+
+  data_access:
+    portal: "https://saocom.invap.com.ar/"
+    note: "Some products accessible via ASF; direct access requires CONAE registration."

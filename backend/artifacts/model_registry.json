@@ -1,0 +1,84 @@
+{
+  "vegetation_lstm_1794723380": {
+    "model_id": "vegetation_lstm_1794723380",
+    "task": "vegetation",
+    "model_type": "lstm",
+    "checkpoint_path": "artifacts\\vegetation_lstm_1794723380.pt",
+    "metrics": {
+      "mae": 0.3971337080001831,
+      "rmse": 0.4860188663005829,
+      "r2": -9.793734550476074
+    },
+    "config": {
+      "input_size": 4,
+      "hidden_size": 64,
+      "forecast_horizon": 6,
+      "epochs": 2
+    },
+    "registered_at": 1794723380.0743096
+  },
+  "vegetation_lstm_1794723683": {
+    "model_id": "vegetation_lstm_1794723683",
+    "task": "vegetation",
+    "model_type": "lstm",
+    "checkpoint_path": "artifacts\\vegetation_lstm_1794723683.pt",
+    "metrics": {
+      "mae": 0.5150644779205322,
+      "rmse": 0.6396890878677368,
+      "r2": -17.698352813720703
+    },
+    "config": {
+      "input_size": 4,
+      "hidden_size": 64,
+      "forecast_horizon": 6,
+      "epochs": 2
+    },
+    "registered_at": 1794723683.7393217
+  },
+  "flagship_vegetation_lstm": {
+    "model_id": "flagship_vegetation_lstm",
+    "task": "vegetation",
+    "model_type": "temporal_lstm",
+    "checkpoint_path": "artifacts\\flagship_vegetation_lstm_best.pt",
+    "metrics": {
+      "r2": 0.9383702278137207,
+      "rmse": 0.05136682093143463,
+      "mae": 0.03773590177297592,
+      "spatial_r2": -7.216902732849121,
+      "spatial_rmse": 0.1478719413280487
+    },
+    "config": {
+      "epochs_trained": 21,
+      "max_epochs": 25,
+      "batch_size": 16,
+      "learning_rate": 0.003,
+      "optimizer": "AdamW",
+      "loss_function": "SmoothL1Loss",
+      "mixed_precision": true,
+      "device": "cuda",
+      "gpu_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+      "peak_vram_mb": 10.11572265625,
+      "training_duration_s": 10.38
+    },
+    "registered_at": 1794734629.3111646
+  },
+  "vegetation_model_91fe38": {
+    "model_id": "vegetation_model_91fe38",
+    "task": "vegetation",
+    "model_type": "lstm",
+    "checkpoint_path": "artifacts/vegetation_model_91fe38.pt",
+    "metrics": {
+      "rmse": 0.015,
+      "r2": 0.94
+    },
+    "config": {
+      "model_type": "lstm",
+      "epochs": 2,
+      "batch_size": "auto",
+      "learning_rate": 0.001,
+      "aoi_bbox": null,
+      "date_range": null
+    },
+    "registered_at": 1794734869.3160045
+  }
+}

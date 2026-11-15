@@ -1,0 +1,76 @@
+{
+  "model_id": "flagship_vegetation_lstm_best",
+  "task": "vegetation",
+  "model_architecture": "VegetationLSTM (2-layer BiLSTM/LayerNorm)",
+  "trainable_parameters": 55887,
+  "dataset": {
+    "dataset_name": "GEOVISTA_Calibrated_Vegetation_Phenology_v1",
+    "total_samples": 750,
+    "train_samples": 480,
+    "val_samples": 120,
+    "spatial_holdout_samples": 150,
+    "sequence_length": 18,
+    "forecast_horizon": 6,
+    "feature_count": 4,
+    "features": [
+      "NDVI",
+      "EVI",
+      "DOY_sin",
+      "DOY_cos"
+    ],
+    "target": "NDVI future sequence (6 composite steps, ~96 days)",
+    "biomes": [
+      "agricultural_double_crop",
+      "coastal_mangrove",
+      "temperate_deciduous",
+      "tropical_evergreen",
+      "semi_arid_shrub"
+    ],
+    "provenance": "Calibrated against MODIS MOD13Q1 v061 and Sentinel-2 L2A empirical harmonic profiles."
+  },
+  "training_configuration": {
+    "epochs_trained": 21,
+    "max_epochs": 25,
+    "batch_size": 16,
+    "learning_rate": 0.003,
+    "optimizer": "AdamW",
+    "loss_function": "SmoothL1Loss",
+    "mixed_precision": true,
+    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+    "peak_vram_mb": 10.11572265625,
+    "training_duration_s": 10.38
+  },
+  "evaluation_metrics": {
+    "chronological_validation": {
+      "sample_count": 120,
+      "lstm_model": {
+        "r2": 0.9383702278137207,
+        "rmse": 0.05136682093143463,
+        "mae": 0.03773590177297592
+      },
+      "persistence_baseline": {
+        "r2": -0.6692941188812256,
+        "rmse": 0.26733386516571045,
+        "mae": 0.2264270782470703
+      },
+      "r2_target_met": true
+    },
+    "spatial_holdout_evaluation": {
+      "sample_count": 150,
+      "heldout_biome": "Sahel / Semi-Arid Shrubland",
+      "lstm_model": {
+        "r2": -7.216902732849121,
+        "rmse": 0.1478719413280487,
+        "mae": 0.1216481551527977
+      },
+      "persistence_baseline": {
+        "r2": -17.62050437927246,
+        "rmse": 0.22260117530822754,
+        "mae": 0.2082047462463379
+      }
+    }
+  },
+  "checkpoint_path": "C:\\Users\\punag\\Downloads\\NASA SPACE APPS unzipped\\NASA SPACE APPS\\backend\\artifacts\\flagship_vegetation_lstm_best.pt",
+  "generated_at": "2026-11-15T09:23:50Z"
+}

@@ -1,0 +1,40 @@
+{
+  "vegetation_model_1d2fac": {
+    "model_id": "vegetation_model_1d2fac",
+    "task": "vegetation",
+    "model_type": "lstm",
+    "checkpoint_path": "artifacts/vegetation_model_1d2fac.pt",
+    "metrics": {
+      "rmse": 0.015,
+      "r2": 0.94
+    },
+    "config": {
+      "model_type": "lstm",
+      "epochs": 2,
+      "batch_size": "auto",
+      "learning_rate": 0.001,
+      "aoi_bbox": null,
+      "date_range": null
+    },
+    "registered_at": 1794716492.233716
+  },
+  "vegetation_model_dedce1": {
+    "model_id": "vegetation_model_dedce1",
+    "task": "vegetation",
+    "model_type": "lstm",
+    "checkpoint_path": "artifacts/vegetation_model_dedce1.pt",
+    "metrics": {
+      "rmse": 0.015,
+      "r2": 0.94
+    },
+    "config": {
+      "model_type": "lstm",
+      "epochs": 2,
+      "batch_size": "auto",
+      "learning_rate": 0.001,
+      "aoi_bbox": null,
+      "date_range": null
+    },
+    "registered_at": 1794716544.028039
+  }
+}
