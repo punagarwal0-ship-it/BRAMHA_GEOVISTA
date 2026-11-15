@@ -1,0 +1,69 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Sumi-Sage (deal 3/3, seed geospatial-earth-observation-intelligence-8f2e·e47a2026·2026-11-14·r0) · redesign: full
+ * nav: top bar with coordinate status · signature: dataset-driven split swipe map viewer · states: loading, empty, full, error
+ * axes: dark/grotesk-sans/sage · posture: committed · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · weakest: S, eliminated stock glassmorphism and generic blue slates in favor of restrained charcoal & sage telemetry */
+@import url("./tokens.css");
+@import url("./base.css");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+}
+
+/* Hard-edged instrument scrollbar (Sumi-Sage Theme) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-paper-3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-rule);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* OpenLayers HUD overrides */
+.ol-viewport {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ol-control {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+.ol-zoom {
+  display: none !important;
+}
+
+.ol-attribution {
+  bottom: 0.25rem !important;
+  right: 0.5rem !important;
+  font-family: var(--font-outlier) !important;
+  font-size: 10px !important;
+  background: var(--color-paper-2) !important;
+  color: var(--color-muted) !important;
+  border: 1px solid var(--color-rule) !important;
+  border-radius: 0 !important;
+}
+
+.ol-attribution button {
+  display: none !important;
+}
+
+.ol-attribution ul {
+  font-size: 10px !important;
+  color: var(--color-muted) !important;
+}

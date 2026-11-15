@@ -37,7 +37,7 @@ cd backend
 
 ### 3. Start React / OpenLayers Frontend
 ```powershell
-cd "FRONT END"
+cd frontend
 npm run dev
 ```
 *Dashboard interface:* `http://localhost:5173`

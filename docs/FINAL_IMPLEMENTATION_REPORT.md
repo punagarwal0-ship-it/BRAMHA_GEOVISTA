@@ -16,7 +16,7 @@ Within this prototype sprint, GEOVISTA Intelligence achieved a genuine, reproduc
    - **Validation $\text{RMSE} = 0.0514$**, **$\text{MAE} = 0.0377$** (outperforming the climatological persistence baseline of $R^2 = -0.6693, \text{RMSE} = 0.2673$).
 3. **Domain Generalization & Anti-Leakage Verified:** Evaluated on a separate spatial holdout biome (Semi-Arid Shrubland) without temporal or spatial leakage ($R^2 = -7.2169, \text{RMSE} = 0.1479$ vs. persistence baseline $-17.6205$).
 4. **Live API Service Operational:** Saved model checkpoint loaded into memory; live GPU inference exposed via FastAPI endpoints `/api/v1/predict/vegetation` and `/api/analysis/jobs`.
-5. **Frontend Integration Verified:** Live compatibility bridge established for the existing React/TypeScript/OpenLayers frontend (`FRONT END/src/services/apiAdapter.ts`).
+5. **Frontend Integration Verified:** Live compatibility bridge established for the existing React/TypeScript/OpenLayers frontend (`frontend/src/services/apiAdapter.ts`).
 
 ---
 
@@ -165,8 +165,8 @@ cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\backend"
 ### 5. Start the GEOVISTA Frontend
 In a separate terminal:
 ```powershell
-cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\FRONT END"
+cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\frontend"
 npm run dev
 ```
 *Open:* `http://localhost:5173`
-- To route all frontend requests directly to the live Python backend, set `VITE_API_BASE_URL=http://localhost:8000` and `VITE_ENABLE_MOCK_DATA=false` in `FRONT END/.env`.
+- To route all frontend requests directly to the live Python backend, set `VITE_API_BASE_URL=http://localhost:8000` and `VITE_ENABLE_MOCK_DATA=false` in `frontend/.env`.

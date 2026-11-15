@@ -302,13 +302,13 @@ cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\backend"
 The React + TypeScript + Vite + OpenLayers frontend is pre-configured to communicate with the FastAPI backend:
 ```powershell
 # In a new PowerShell window:
-cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\FRONT END"
+cd "c:\Users\punag\Downloads\NASA SPACE APPS unzipped\NASA SPACE APPS\frontend"
 
 # Start the Vite development server
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
-- To switch the frontend from synthetic demo fixtures to the **Live Python GPU Backend**, edit `FRONT END/.env`:
+- To switch the frontend from synthetic demo fixtures to the **Live Python GPU Backend**, edit `frontend/.env`:
 ```text
 VITE_API_BASE_URL=http://localhost:8000
 VITE_ENABLE_MOCK_DATA=false
